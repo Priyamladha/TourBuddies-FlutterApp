@@ -30,7 +30,7 @@ ios/Flutter/.last_build_id
 .pub-cache/
 .pub/
 /build/
-/plugins/
+/plugins/here_sdk/
 
 # Web related
 lib/generated_plugin_registrant.dart
