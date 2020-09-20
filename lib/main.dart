@@ -21,13 +21,17 @@ import 'package:flutter/material.dart';
 import 'package:here_sdk/core.dart';
 import 'package:here_sdk/mapview.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 
-import 'MapMarkerExample.dart';
+import 'screens/MapMarkerExample.dart';
 
-
+import 'screens/login_screen.dart';
+import 'screens/registration_screen.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/tracking_screen.dart';
 
 void main() async{
   SdkContext.init(IsolateOrigin.main);
@@ -37,131 +41,27 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   print("Firebase initialized.........................................");
-  runApp(MaterialApp(home: MyApp()));
+  runApp(MyApp());
 }
+
+//void main() => runApp(FlashChat());
 
 class MyApp extends StatelessWidget {
-  // Use _context only within the scope of this widget.
-  BuildContext _context;
-  MapMarkerExample _mapMarkerExample;
-
   @override
   Widget build(BuildContext context) {
-    _context = context;
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('HERE SDK - Map Marker Example'),
-        ),
-        body: Stack(
-          children: [
-            HereMap(
-
-                onMapCreated: _onMapCreated
-            ),
-            StreamBuilder<Position>(
-
-                stream: getPositionStream(desiredAccuracy: LocationAccuracy.high),
-                builder: (context,snapshot){
-                  //return Text('lat : ${snapshot.data.latitude} Long :${snapshot.data.longitude}');
-
-                  if(snapshot!=null){
-                    _anchoredMapMarkersButtonClicked(snapshot.data.latitude,snapshot.data.longitude);
-//                    sleep(new Duration(seconds: 5));
-                  }
-                  else
-                    return CircularProgressIndicator();
-                  return Text('');
-                }
-            ),
-//            Row(
-//              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//              children: [
-//                button('Anchored', _anchoredMapMarkersButtonClicked),
-//                button('Centered', _centeredMapMarkersButtonClicked),
-//                button('Clear', _clearButtonClicked),
-//              ],
-//            ),
-          ],
+      theme: ThemeData.dark().copyWith(
+        textTheme: TextTheme(
+          bodyText2: TextStyle(color: Colors.black54),
         ),
       ),
-    );
-  }
-
-
-  void _onMapCreated(HereMapController hereMapController) {
-    hereMapController.mapScene.loadSceneForMapScheme(MapScheme.hybridDay,
-        (MapError error) {
-      if (error == null) {
-        _mapMarkerExample = MapMarkerExample(_context, hereMapController);
-      } else {
-        print("Map scene not loaded. MapError: " + error.toString());
-      }
-    });
-  }
-
-  void _anchoredMapMarkersButtonClicked(double lat, double long) {
-    Map<String,dynamic> demodata = {
-      "Latitude": lat,
-      "Longitude": long
-    };
-    CollectionReference collectionReference = FirebaseFirestore.instance.collection('Location');
-    DocumentReference documentReference = collectionReference.doc('VTjoLa5Elka1EjW6ryBq');
-    documentReference.update(demodata);
-    _mapMarkerExample.showAnchoredMapMarkers(lat,long);
-  }
-
-  void _centeredMapMarkersButtonClicked() {
-    _mapMarkerExample.showCenteredMapMarkers();
-  }
-
-  void _clearButtonClicked() {
-    _mapMarkerExample.clearMap();
-  }
-
-  // A helper method to add a button on top of the HERE map.
-  Align button(String buttonLabel, Function callbackFunction) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: RaisedButton(
-        color: Colors.lightBlueAccent,
-        textColor: Colors.white,
-        onPressed: () => callbackFunction(),
-        child: Text(buttonLabel, style: TextStyle(fontSize: 20)),
-      ),
-    );
-  }
-}
-
-//class MyAppp extends StatelessWidget {
-//  // This widget is the root of your application.
-//  @override
-//  Widget build(BuildContext context) {
-//    return StreamProvider<UserLocation>(
-//      create: (context) => LocationService().locationStream,
-//      child: MaterialApp(
-//          title: 'Flutter Demo',
-//          theme: ThemeData(
-//            primarySwatch: Colors.blue,
-//          ),
-//          home: Scaffold(
-//            body: HomeView(),
-//          )),
-//    );
-//  }
-//}
-//
-
-
-class HomeView extends StatelessWidget {
-//  const HomeView({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-//    var userLocation = Provider.of<UserLocation>(context);
-    return Center(
-      child: Text(
-          'hello there friends'),
+      initialRoute: WelcomeScreen.id,
+      routes: {
+        WelcomeScreen.id: (context) => WelcomeScreen(),
+        LoginScreen.id: (context) => LoginScreen(),
+        RegistrationScreen.id: (context) => RegistrationScreen(),
+        TrackingScreen.id: (context) => TrackingScreen(),
+      },
     );
   }
 }
