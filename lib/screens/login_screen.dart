@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Flexible(
                 child: Container(
                   height: 100.0,
-                  child: Image.asset('images/MindHug.png'),
+                  child: Image.asset('assets/poi.png'),
                 ),
               ),
               SizedBox(

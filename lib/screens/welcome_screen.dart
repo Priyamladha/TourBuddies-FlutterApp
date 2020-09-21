@@ -24,7 +24,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Container(
-                  child: Image.asset('images/MindHug.png'),
+                  child: Image.asset('assets/poi.png'),
                   height: 100.0,
                 ),
               ],

@@ -49,6 +49,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   // Use _context only within the scope of this widget.
   BuildContext _context;
   MapMarkerExample _mapMarkerExample;
+  final _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +57,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('HERE SDK - Map Marker Example'),
+          leading: null,
+          actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () {
+//                moodsStream();
+                  _auth.signOut();
+                  Navigator.pop(context);
+                }),
+          ],
+          title: Text('Tracking',),
         ),
         body: Stack(
           children: [
