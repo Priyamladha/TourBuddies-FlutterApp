@@ -50,7 +50,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   BuildContext _context;
   MapMarkerExample _mapMarkerExample;
   final _auth = FirebaseAuth.instance;
-
+  var startlocationstream =false;
   @override
   Widget build(BuildContext context) {
     _context = context;
@@ -81,12 +81,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 builder: (context,snapshot){
                   //return Text('lat : ${snapshot.data.latitude} Long :${snapshot.data.longitude}');
 
-                  if(snapshot!=null){
+                  if(snapshot!=null && startlocationstream){
+//                    print("marker true");
                     _anchoredMapMarkersButtonClicked(snapshot.data.latitude,snapshot.data.longitude);
 //                    sleep(new Duration(seconds: 5));
                   }
-                  else
-                    return CircularProgressIndicator();
+//                  else
+//                    return CircularProgressIndicator();
                   return Text('');
                 }
             ),
@@ -109,7 +110,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
     hereMapController.mapScene.loadSceneForMapScheme(MapScheme.hybridDay,
             (MapError error) {
           if (error == null) {
+//            print("marker false");
             _mapMarkerExample = MapMarkerExample(_context, hereMapController);
+            startlocationstream =true;
           } else {
             print("Map scene not loaded. MapError: " + error.toString());
           }
