@@ -54,7 +54,7 @@ class MapMarkerExample {
     // The draw order is determined from what is first added to the map,
     // but since loading images is done async, we can make this explicit by setting
     // a draw order. High numbers are drawn on top of lower numbers.
-    _addCircleMapMarker(geoCoordinates, 0);
+//    _addCircleMapMarker(geoCoordinates, 0);
 
 //     Anchored, pointing to location.
     _addPOIMapMarker(geoCoordinates, 1);
@@ -99,9 +99,9 @@ class MapMarkerExample {
     mapMarker.metadata = metadata;
 
     _hereMapController.mapScene.addMapMarker(mapMarker);
-    _hereMapController.camera.lookAtPoint(geoCoordinates);
-    clearMap();
-    _mapMarkerList.clear();
+//    _hereMapController.camera.lookAtPoint(geoCoordinates);
+//    clearMap();
+//    _mapMarkerList.clear();
 //    _mapMarkerList.removeLast();
     _mapMarkerList.add(mapMarker);
   }

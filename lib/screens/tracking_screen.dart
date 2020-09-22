@@ -162,7 +162,24 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //
 //    DocumentReference documentReference = collectionReference.doc('VTjoLa5Elka1EjW6ryBq');
 //
+
+    final locations = await collectionReference.get();
+    for(var location in locations.docs){
+
+      lat =location.data().values.first;
+      long = location.data().values.last;
     _mapMarkerExample.showAnchoredMapMarkers(lat,long);
+    }
+
+    _mapMarkerExample.clearMap();
+    for(var location in locations.docs){
+
+      lat =location.data().values.first;
+      long = location.data().values.last;
+      _mapMarkerExample.showAnchoredMapMarkers(lat,long);
+
+//      _mapMarkerExample.mapMarkerList.add(value);
+    }
   }
   Future<bool> checkIfDocExists(String docId) async {
     try {
