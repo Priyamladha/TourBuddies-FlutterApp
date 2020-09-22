@@ -50,7 +50,31 @@ class _TrackingScreenState extends State<TrackingScreen> {
   BuildContext _context;
   MapMarkerExample _mapMarkerExample;
   final _auth = FirebaseAuth.instance;
+  User loggedInUser;
+  String email;
   var startlocationstream =false;
+  var useruid;
+
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser(){
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        loggedInUser = user;
+        useruid=loggedInUser.uid;
+        print(useruid);
+        print(loggedInUser.email);
+        email = loggedInUser.email;
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _context = context;
@@ -119,17 +143,38 @@ class _TrackingScreenState extends State<TrackingScreen> {
         });
   }
 
-  void _anchoredMapMarkersButtonClicked(double lat, double long) {
+  void _anchoredMapMarkersButtonClicked (double lat, double long) async {
     Map<String,dynamic> demodata = {
       "Latitude": lat,
       "Longitude": long
     };
+    bool docExists = await checkIfDocExists(useruid);
+//    print("Document exists in Firestore? " + docExists.toString());
     CollectionReference collectionReference = FirebaseFirestore.instance.collection('Location');
-    DocumentReference documentReference = collectionReference.doc('VTjoLa5Elka1EjW6ryBq');
-    documentReference.update(demodata);
+    if(docExists){
+      DocumentReference documentReference= collectionReference.doc(useruid);
+      documentReference.update(demodata);
+    }
+    else{
+      collectionReference.doc(useruid).set(demodata);
+    }
+
+//
+//    DocumentReference documentReference = collectionReference.doc('VTjoLa5Elka1EjW6ryBq');
+//
     _mapMarkerExample.showAnchoredMapMarkers(lat,long);
   }
+  Future<bool> checkIfDocExists(String docId) async {
+    try {
+      // Get reference to Firestore collection
+      var collectionRef = FirebaseFirestore.instance.collection('Location');
 
+      var doc = await collectionRef.doc(docId).get();
+      return doc.exists;
+    } catch (e) {
+      throw e;
+    }
+  }
   void _centeredMapMarkersButtonClicked() {
     _mapMarkerExample.showCenteredMapMarkers();
   }
