@@ -29,6 +29,7 @@ import 'package:here_sdk/mapview.dart';
 class MapMarkerExample {
   BuildContext _context;
   HereMapController _hereMapController;
+  MapCameraState _mapCameraState;
   List<MapMarker> _mapMarkerList = [];
   MapImage _poiMapImage;
   MapImage _photoMapImage;
@@ -59,16 +60,34 @@ class MapMarkerExample {
 //     Anchored, pointing to location.
     _addPOIMapMarker(geoCoordinates, 1);
   }
+  void centeruserlocation(double lat, double long) async{
 
-  void showCenteredMapMarkers() {
-    GeoCoordinates geoCoordinates = _createRandomGeoCoordinatesInViewport();
+    GeoCoordinates geoCoordinates = _setcurrentGeoCoordinatesInViewport(lat, long);
+    _mapCameraState = _hereMapController.camera.state;
+    var distance = _mapCameraState.distanceToTargetInMeters;
+    _hereMapController.camera.lookAtPoint(geoCoordinates);
+//    print(distance);
+    if(distance>200000){
+      distance=200000;
+    }
 
-    // Centered on location.
-    _addPhotoMapMarker(geoCoordinates, 0);
+    while(distance>500){
+      await new Future.delayed(const Duration(milliseconds:50 ));
+      _hereMapController.camera.lookAtPointWithDistance(geoCoordinates,distance);
+      distance -=7000;
+    }
+    _hereMapController.camera.lookAtPointWithDistance(geoCoordinates,500);
 
-    // Centered on location. Shown above the photo marker to indicate the location.
-    _addCircleMapMarker(geoCoordinates, 1);
   }
+//  void showCenteredMapMarkers() {
+//    GeoCoordinates geoCoordinates = _createRandomGeoCoordinatesInViewport();
+//
+//    // Centered on location.
+//    _addPhotoMapMarker(geoCoordinates, 0);
+//
+//    // Centered on location. Shown above the photo marker to indicate the location.
+//    _addCircleMapMarker(geoCoordinates, 1);
+//  }
 
   void clearMap() {
     for (var mapMarker in _mapMarkerList) {
@@ -106,42 +125,42 @@ class MapMarkerExample {
     _mapMarkerList.add(mapMarker);
   }
 
-  Future<void> _addPhotoMapMarker(
-      GeoCoordinates geoCoordinates, int drawOrder) async {
-    // Reuse existing MapImage for new map markers.
-    if (_photoMapImage == null) {
-      Uint8List imagePixelData = await _loadFileAsUint8List('here_car.png');
-      _photoMapImage =
-          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
-    }
-
-    MapMarker mapMarker = MapMarker(geoCoordinates, _photoMapImage);
-    mapMarker.drawOrder = drawOrder;
-
-    _hereMapController.mapScene.addMapMarker(mapMarker);
-    _hereMapController.mapScene.removeMapMarker(_mapMarkerList.last);
-    _mapMarkerList.removeLast();
-    _mapMarkerList.add(mapMarker);
-  }
-
-  Future<void> _addCircleMapMarker(
-      GeoCoordinates geoCoordinates, int drawOrder) async {
-    // Reuse existing MapImage for new map markers.
-    if (_circleMapImage == null) {
-      Uint8List imagePixelData = await _loadFileAsUint8List('circle.png');
-      _circleMapImage =
-          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
-    }
-
-    MapMarker mapMarker = MapMarker(geoCoordinates, _circleMapImage);
-    mapMarker.drawOrder = drawOrder;
-
-    _hereMapController.mapScene.addMapMarker(mapMarker);
-    clearMap();
-    _mapMarkerList.clear();
+//  Future<void> _addPhotoMapMarker(
+//      GeoCoordinates geoCoordinates, int drawOrder) async {
+//    // Reuse existing MapImage for new map markers.
+//    if (_photoMapImage == null) {
+//      Uint8List imagePixelData = await _loadFileAsUint8List('here_car.png');
+//      _photoMapImage =
+//          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
+//    }
+//
+//    MapMarker mapMarker = MapMarker(geoCoordinates, _photoMapImage);
+//    mapMarker.drawOrder = drawOrder;
+//
+//    _hereMapController.mapScene.addMapMarker(mapMarker);
+//    _hereMapController.mapScene.removeMapMarker(_mapMarkerList.last);
 //    _mapMarkerList.removeLast();
-    _mapMarkerList.add(mapMarker);
-  }
+//    _mapMarkerList.add(mapMarker);
+//  }
+
+//  Future<void> _addCircleMapMarker(
+//      GeoCoordinates geoCoordinates, int drawOrder) async {
+//    // Reuse existing MapImage for new map markers.
+//    if (_circleMapImage == null) {
+//      Uint8List imagePixelData = await _loadFileAsUint8List('circle.png');
+//      _circleMapImage =
+//          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
+//    }
+//
+//    MapMarker mapMarker = MapMarker(geoCoordinates, _circleMapImage);
+//    mapMarker.drawOrder = drawOrder;
+//
+//    _hereMapController.mapScene.addMapMarker(mapMarker);
+//    clearMap();
+//    _mapMarkerList.clear();
+////    _mapMarkerList.removeLast();
+//    _mapMarkerList.add(mapMarker);
+//  }
 
   Future<Uint8List> _loadFileAsUint8List(String fileName) async {
     // The path refers to the assets directory as specified in pubspec.yaml.
@@ -187,26 +206,26 @@ class MapMarkerExample {
     return new GeoCoordinates(lat, long);
   }
 
-  GeoCoordinates _createRandomGeoCoordinatesInViewport() {
-    GeoBox geoBox = _hereMapController.camera.boundingBox;
-    if (geoBox == null) {
-      // Happens only when map is not fully covering the viewport.
-      return GeoCoordinates(52.530932, 13.384915);
-    }
-
-    GeoCoordinates northEast = geoBox.northEastCorner;
-    GeoCoordinates southWest = geoBox.southWestCorner;
-
-    double minLat = southWest.latitude;
-    double maxLat = northEast.latitude;
-    double lat = _getRandom(minLat, maxLat);
-
-    double minLon = southWest.longitude;
-    double maxLon = northEast.longitude;
-    double lon = _getRandom(minLon, maxLon);
-
-    return new GeoCoordinates(lat, lon);
-  }
+//  GeoCoordinates _createRandomGeoCoordinatesInViewport() {
+//    GeoBox geoBox = _hereMapController.camera.boundingBox;
+//    if (geoBox == null) {
+//      // Happens only when map is not fully covering the viewport.
+//      return GeoCoordinates(52.530932, 13.384915);
+//    }
+//
+//    GeoCoordinates northEast = geoBox.northEastCorner;
+//    GeoCoordinates southWest = geoBox.southWestCorner;
+//
+//    double minLat = southWest.latitude;
+//    double maxLat = northEast.latitude;
+//    double lat = _getRandom(minLat, maxLat);
+//
+//    double minLon = southWest.longitude;
+//    double maxLon = northEast.longitude;
+//    double lon = _getRandom(minLon, maxLon);
+//
+//    return new GeoCoordinates(lat, lon);
+//  }
 
   double _getRandom(double min, double max) {
     return min + Random().nextDouble() * (max - min);

@@ -16,10 +16,16 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+import 'dart:math';
+import 'dart:typed_data';
+
+
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:here_sdk/core.dart';
+import 'package:here_sdk/gestures.dart';
+import 'package:here_sdk/mapview.dart';
 
 import 'package:flutter/material.dart';
-import 'package:here_sdk/core.dart';
-import 'package:here_sdk/mapview.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -52,6 +58,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
   final _auth = FirebaseAuth.instance;
   User loggedInUser;
   String email;
+  double lat;
+  double long;
   var startlocationstream =false;
   var useruid;
 
@@ -94,7 +102,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           title: Text('Tracking',),
         ),
         body: Stack(
-          children: [
+          children: <Widget>[
             HereMap(
 
                 onMapCreated: _onMapCreated
@@ -107,13 +115,34 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
                   if(snapshot!=null && startlocationstream){
 //                    print("marker true");
-                    _anchoredMapMarkersButtonClicked(snapshot.data.latitude,snapshot.data.longitude);
+                    lat = snapshot.data.latitude;
+                    long = snapshot.data.longitude;
+                    _anchoredMapMarkersButtonClicked(lat,long);
 //                    sleep(new Duration(seconds: 5));
                   }
 //                  else
 //                    return CircularProgressIndicator();
                   return Text('');
                 }
+            ),
+            Positioned(
+//              decoration: kMessageContainerDecoration,
+
+              bottom: 10,
+              right: 10,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: () {
+//                      print("hello from the space");
+                      _mapMarkerExample.centeruserlocation(lat, long);
+                    },
+                    child: Icon(Icons.location_on),
+                  ),
+                ],
+              ),
             ),
 //            Row(
 //              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -136,6 +165,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           if (error == null) {
 //            print("marker false");
             _mapMarkerExample = MapMarkerExample(_context, hereMapController);
+            //added flag by Priyam
             startlocationstream =true;
           } else {
             print("Map scene not loaded. MapError: " + error.toString());
@@ -144,6 +174,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _anchoredMapMarkersButtonClicked (double lat, double long) async {
+
     Map<String,dynamic> demodata = {
       "Latitude": lat,
       "Longitude": long
@@ -159,27 +190,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
       collectionReference.doc(useruid).set(demodata);
     }
 
-//
-//    DocumentReference documentReference = collectionReference.doc('VTjoLa5Elka1EjW6ryBq');
-//
 
     final locations = await collectionReference.get();
-    for(var location in locations.docs){
-
-      lat =location.data().values.first;
-      long = location.data().values.last;
-    _mapMarkerExample.showAnchoredMapMarkers(lat,long);
-    }
 
     _mapMarkerExample.clearMap();
     for(var location in locations.docs){
 
-      lat =location.data().values.first;
-      long = location.data().values.last;
-      _mapMarkerExample.showAnchoredMapMarkers(lat,long);
-
-//      _mapMarkerExample.mapMarkerList.add(value);
+      double temp_lat =location.data().values.first;
+      double temp_long = location.data().values.last;
+      _mapMarkerExample.showAnchoredMapMarkers(temp_lat,temp_long);
     }
+
   }
   Future<bool> checkIfDocExists(String docId) async {
     try {
@@ -192,13 +213,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
       throw e;
     }
   }
-  void _centeredMapMarkersButtonClicked() {
-    _mapMarkerExample.showCenteredMapMarkers();
-  }
-
-  void _clearButtonClicked() {
-    _mapMarkerExample.clearMap();
-  }
+//  void _centeredMapMarkersButtonClicked() {
+//    _mapMarkerExample.showCenteredMapMarkers();
+//  }
+//
+//  void _clearButtonClicked() {
+//    _mapMarkerExample.clearMap();
+//  }
 
   // A helper method to add a button on top of the HERE map.
   Align button(String buttonLabel, Function callbackFunction) {
