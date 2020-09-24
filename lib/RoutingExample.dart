@@ -58,7 +58,7 @@ class RoutingExample {
 
     _setTapGestureHandler();
 
-
+    _addPOIMapMarkerUser(GeoCoordinates(28.3654, 77.3233), 0);
     _routingEngine = new RoutingEngine();
   }
   // Future<void> plotRoute() async{
@@ -269,11 +269,12 @@ class RoutingExample {
   Future<void> _addPOIMapMarker(
       GeoCoordinates geoCoordinates, int drawOrder, Place place) async {
     // Reuse existing MapImage for new map markers.
-    if (_poiMapImage == null) {
-      Uint8List imagePixelData = await _loadFileAsUint8List('poi.png');
+
+      Uint8List imagePixelData;
+      imagePixelData = await _loadFileAsUint8List('round.png');
       _poiMapImage =
           MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
-    }
+
 
     // By default, the anchor point is set to 0.5, 0.5 (= centered).
     // Here the bottom, middle position should point to the location.
@@ -304,6 +305,36 @@ class RoutingExample {
     }
 
   }
+  Future<void> _addPOIMapMarkerUser(
+      GeoCoordinates geoCoordinates, int drawOrder) async {
+    // Reuse existing MapImage for new map markers.
+    if (_poiMapImage == null) {
+      Uint8List imagePixelData;
+      imagePixelData = await _loadFileAsUint8List('poi.png');
+      _poiMapImage =
+          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
+    }
+
+    // By default, the anchor point is set to 0.5, 0.5 (= centered).
+    // Here the bottom, middle position should point to the location.
+    Anchor2D anchor2D = Anchor2D.withHorizontalAndVertical(0.5, 1);
+
+    MapMarker mapMarker =
+    MapMarker.withAnchor(geoCoordinates, _poiMapImage, anchor2D);
+    mapMarker.drawOrder = drawOrder;
+    // Metadata metadata = new Metadata();
+    // metadata.setString("key_poi", place.title);
+    // metadata.setDouble("latitude", place.geoCoordinates.latitude);
+    // metadata.setDouble("longitude", place.geoCoordinates.longitude);
+
+    //metadata.setString("key_poi", "Metadata: This is a POI.");
+
+
+
+    _hereMapController.mapScene.addMapMarker(mapMarker);
+    }
+
+
   
   void clearMap() {
     for (var mapPolygon in _mapPolygons) {
