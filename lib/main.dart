@@ -18,6 +18,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:here_sdk/core.dart';
 import 'package:here_sdk/mapview.dart';
 
@@ -47,14 +48,26 @@ class MyApp extends StatelessWidget {
         body: Stack(
           children: [
             HereMap(onMapCreated: _onMapCreated),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            SpeedDial(
+              animatedIcon: AnimatedIcons.menu_close,
+              animatedIconTheme: IconThemeData(size: 22.0),
+              marginRight: 18,
+              marginBottom: 20,
+              overlayOpacity: 0.0,
               children: [
-                button('Get Isoline', _addRouteButtonClicked),
-                button('Clear Map', _clearMapButtonClicked),
-                button('Get Places', _getPlacesClicked),
+                floatingButton(_addRouteButtonClicked, Icons.add),
+                floatingButton(_clearMapButtonClicked, Icons.clear),
+                floatingButton(_getPlacesClicked, Icons.local_cafe),
               ],
-            ),
+            )
+            // Row(
+            //             //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //             //   children: [
+            //             //     button('Get Isoline', _addRouteButtonClicked),
+            //             //     button('Clear Map', _clearMapButtonClicked),
+            //             //     button('Get Places', _getPlacesClicked),
+            //             //   ],
+            //             // ),
           ],
         ),
       ),
@@ -93,6 +106,15 @@ class MyApp extends StatelessWidget {
         textColor: Colors.white,
         onPressed: () => callbackFunction(),
         child: Text(buttonLabel, style: TextStyle(fontSize: 20)),
+      ),
+    );
+  }
+  SpeedDialChild floatingButton(Function callbackFunction, IconData icn) {
+    return SpeedDialChild(
+      child: FloatingActionButton(
+        onPressed: () => callbackFunction(),
+        child: Icon(icn),
+        backgroundColor: Colors.green,
       ),
     );
   }
