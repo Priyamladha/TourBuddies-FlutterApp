@@ -19,6 +19,7 @@
 
 // import 'dart:math';
 
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:here_sdk/core.dart';
@@ -33,7 +34,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:poly/poly.dart';
 import 'package:here_sdk/gestures.dart';
-
+import 'package:toast/toast.dart';
 
 class RoutingExample {
   BuildContext _context;
@@ -43,9 +44,8 @@ class RoutingExample {
   List<MapPolygon> _mapPolygons = [];
   List<MapPolyline> _mapPolyLines = [];
   RoutingEngine _routingEngine;
+  int counter = 0;
   // List<GeoCoordinates> polylineMid = new List<GeoCoordinates>();
-
-
 
   RoutingExample(BuildContext context, HereMapController hereMapController) {
     _context = context;
@@ -109,17 +109,18 @@ class RoutingExample {
     List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
 
     await _routingEngine.calculateCarRoute(waypoints, CarOptions.withDefaults(),
-            (RoutingError routingError, List<here.Route> routeList) async {
-          if (routingError == null) {
-            here.Route route = routeList.first;
-            _showRouteDetails(route);
-            _showRouteOnMap(route);
-          } else {
-            var error = routingError.toString();
-            _showDialog('Error', 'Error while calculating a route: $error');
-          }
-        });
+        (RoutingError routingError, List<here.Route> routeList) async {
+      if (routingError == null) {
+        here.Route route = routeList.first;
+        _showRouteDetails(route);
+        _showRouteOnMap(route);
+      } else {
+        var error = routingError.toString();
+        _showDialog('Error', 'Error while calculating a route: $error');
+      }
+    });
   }
+
   Future<void> addRoute() async {
     // var startGeoCoordinates = _createRandomGeoCoordinatesInViewport();
     // var destinationGeoCoordinates = _createRandomGeoCoordinatesInViewport();
@@ -140,19 +141,18 @@ class RoutingExample {
     List<GeoCoordinates> vertices = new List<GeoCoordinates>();
     vertices = await getVerts();
     _showIsoOnMap(vertices);
-          // if (routingError == null) {
-          //   here.Route route = routeList.first;
-          //   _showRouteDetails(route);
-          //   _showRouteOnMap(route);
-          // } else {
-          //   var error = routingError.toString();
-          //   _showDialog('Error', 'Error while calculating a route: $error');
-          // }
+    // if (routingError == null) {
+    //   here.Route route = routeList.first;
+    //   _showRouteDetails(route);
+    //   _showRouteOnMap(route);
+    // } else {
+    //   var error = routingError.toString();
+    //   _showDialog('Error', 'Error while calculating a route: $error');
+    // }
     //};
   }
-  Future<void> getPlaces() async{
 
-
+  Future<void> getPlaces(List<String> items) async {
     List<GeoCoordinates> vertices = new List<GeoCoordinates>();
     // vertices = await getVerts();
     // var k = (vertices.length/2);
@@ -179,23 +179,53 @@ class RoutingExample {
 
     SearchEngine se = new SearchEngine();
     // Add possible categories to this list.
+    Map<String, List<String>> map = {
+      "Restaurants": [
+        PlaceCategory.eatAndDrink,
+        PlaceCategory.eatAndDrinkRestaurant
+      ],
+      "Hospitals": [PlaceCategory.facilitiesHospitalHealthcare],
+      "Cafe": [PlaceCategory.eatAndDrinkCoffeeTea],
+      "Hotels": [PlaceCategory.accomodation],
+      "Locations": [
+        PlaceCategory.sightsAndMuseums,
+        PlaceCategory.sightsLandmarkAttaction,
+        PlaceCategory.sightsReligiousPlace
+      ],
+      "Facilities": [
+        PlaceCategory.facilitiesEducation,
+        PlaceCategory.facilitiesEventSpaces,
+        PlaceCategory.facilitiesLibrary,
+        PlaceCategory.facilitiesHospitalHealthcare,
+        PlaceCategory.facilitiesParking
+      ],
+      "Transport": [PlaceCategory.transport],
+      "Businesses": [PlaceCategory.businessAndServices],
+    };
     List<PlaceCategory> cats = List<PlaceCategory>();
-    cats.add(PlaceCategory.withId(PlaceCategory.eatAndDrink));
-    _hereMapController.camera.lookAtPointWithDistance(
-        GeoCoordinates(28.3654, 77.3233), 1200);
-  
+    for (var i in items) {
+      for (var j in map[i]) {
+        cats.add(PlaceCategory.withId(j));
+      }
+      //cats.add(PlaceCategory.withId(map[i]));
+    }
+    //cats.add(PlaceCategory.withId(PlaceCategory.eatAndDrink));
+    _hereMapController.camera
+        .lookAtPointWithDistance(GeoCoordinates(28.3654, 77.3233), 1200);
+    print(cats);
     vertices = await getVerts();
     List<Point> lp = new List<Point>();
-    for (GeoCoordinates gc in vertices){
+    for (GeoCoordinates gc in vertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
     Polygon polygon = new Polygon(lp);
-
+    counter = 0;
     for (int i = 0; i < 25; i++) {
       // Center of the area.
-      GeoCoordinates center = _createRandomGeoCoordinatesInViewport();//new GeoCoordinates(28.3654, 77.3233);
+      GeoCoordinates center =
+          _createRandomGeoCoordinatesInViewport(); //new GeoCoordinates(28.3654, 77.3233);
       // Until random point is in the isoline polygon.
-      while (!polygon.contains(center.latitude, center.longitude)){
+      while (!polygon.contains(center.latitude, center.longitude)) {
         center = _createRandomGeoCoordinatesInViewport();
         //_addPOIMapMarker(center, 0);
       }
@@ -203,15 +233,15 @@ class RoutingExample {
 
       se.searchByCategory(query, new SearchOptions.withDefaults(), getDeets);
     }
-
   }
+
   Future<List<GeoCoordinates>> getVerts() async {
     Map data;
     List coordinates;
     List<GeoCoordinates> vertices = List<GeoCoordinates>();
     var lat = 28.3654;
     var lon = 77.3233;
-    var range = 250;
+    var range = 300;
     var rangeType = "distance";
     var response = await http.get(
         Uri.encodeFull(
@@ -231,26 +261,26 @@ class RoutingExample {
     return vertices;
   }
 
-  Future<void> getDeets(SearchError e, List<Place> results) async {
+  Future<int> getDeets(SearchError e, List<Place> results) async {
     List<GeoCoordinates> vertices = new List<GeoCoordinates>();
     vertices = await getVerts();
     List<Point> lp = new List<Point>();
-    for (GeoCoordinates gc in vertices){
+    for (GeoCoordinates gc in vertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
     Polygon polygon = new Polygon(lp);
-
-    if (e == null){
+    if (e == null) {
       // var count = 0;
-      for (var place in results){
+      for (var place in results) {
         // print(place.geoCoordinates.latitude);
         // print(place.geoCoordinates.longitude);
 
-        if (polygon.contains(place.geoCoordinates.latitude, place.geoCoordinates.longitude)){
-          //print("Done");
-          //_showDialog("place", "this")
+        if (polygon.contains(
+            place.geoCoordinates.latitude, place.geoCoordinates.longitude)) {
+          // print("Done");
+          // _showDialog("place", "this");
+          counter++;
           _addPOIMapMarker(place.geoCoordinates, 0, place);
-
         }
         // _addPOIMapMarker(place.geoCoordinates, 0);
         // if (count < 5){
@@ -261,27 +291,29 @@ class RoutingExample {
         // var k = place.title;
         // _showDialog("lat", '$k');
       }
-    }
-    else{
+    } else {
       print(e);
     }
+    if (counter == 0) {
+      showToast("Category not found in range.");
+    }
   }
+
   Future<void> _addPOIMapMarker(
       GeoCoordinates geoCoordinates, int drawOrder, Place place) async {
     // Reuse existing MapImage for new map markers.
 
-      Uint8List imagePixelData;
-      imagePixelData = await _loadFileAsUint8List('round.png');
-      _poiMapImage =
-          MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
-
+    Uint8List imagePixelData;
+    imagePixelData = await _loadFileAsUint8List('round.png');
+    _poiMapImage =
+        MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
 
     // By default, the anchor point is set to 0.5, 0.5 (= centered).
     // Here the bottom, middle position should point to the location.
     Anchor2D anchor2D = Anchor2D.withHorizontalAndVertical(0.5, 1);
 
     MapMarker mapMarker =
-    MapMarker.withAnchor(geoCoordinates, _poiMapImage, anchor2D);
+        MapMarker.withAnchor(geoCoordinates, _poiMapImage, anchor2D);
     mapMarker.drawOrder = drawOrder;
     Metadata metadata = new Metadata();
     metadata.setString("key_poi", place.title);
@@ -290,21 +322,19 @@ class RoutingExample {
 
     //metadata.setString("key_poi", "Metadata: This is a POI.");
 
-
-
     var flag = 0;
-    for (MapMarker i in _mapMarkerList){
-      if (i == mapMarker){
+    for (MapMarker i in _mapMarkerList) {
+      if (i == mapMarker) {
         flag = 1;
       }
     }
-    if (flag == 0){
+    if (flag == 0) {
       mapMarker.metadata = metadata;
       _hereMapController.mapScene.addMapMarker(mapMarker);
       _mapMarkerList.add(mapMarker);
     }
-
   }
+
   Future<void> _addPOIMapMarkerUser(
       GeoCoordinates geoCoordinates, int drawOrder) async {
     // Reuse existing MapImage for new map markers.
@@ -320,7 +350,7 @@ class RoutingExample {
     Anchor2D anchor2D = Anchor2D.withHorizontalAndVertical(0.5, 1);
 
     MapMarker mapMarker =
-    MapMarker.withAnchor(geoCoordinates, _poiMapImage, anchor2D);
+        MapMarker.withAnchor(geoCoordinates, _poiMapImage, anchor2D);
     mapMarker.drawOrder = drawOrder;
     // Metadata metadata = new Metadata();
     // metadata.setString("key_poi", place.title);
@@ -329,13 +359,9 @@ class RoutingExample {
 
     //metadata.setString("key_poi", "Metadata: This is a POI.");
 
-
-
     _hereMapController.mapScene.addMapMarker(mapMarker);
-    }
+  }
 
-
-  
   void clearMap() {
     for (var mapPolygon in _mapPolygons) {
       _hereMapController.mapScene.removeMapPolygon(mapPolygon);
@@ -345,6 +371,27 @@ class RoutingExample {
       _hereMapController.mapScene.removeMapMarker(mapMarker);
     }
     _mapMarkerList.clear();
+    for (var mapPolyline in _mapPolyLines) {
+      _hereMapController.mapScene.removeMapPolyline(mapPolyline);
+    }
+    _mapPolyLines.clear();
+  }
+
+  void clearPlaces() {
+    for (var mapMarker in _mapMarkerList) {
+      _hereMapController.mapScene.removeMapMarker(mapMarker);
+    }
+    _mapMarkerList.clear();
+  }
+
+  void clearIsoline() {
+    for (var mapPolygon in _mapPolygons) {
+      _hereMapController.mapScene.removeMapPolygon(mapPolygon);
+    }
+    _mapPolygons.clear();
+  }
+
+  void clearRoute() {
     for (var mapPolyline in _mapPolyLines) {
       _hereMapController.mapScene.removeMapPolyline(mapPolyline);
     }
@@ -362,6 +409,7 @@ class RoutingExample {
 
     _showDialog('Route Details', '$routeDetails');
   }
+
   _showRouteOnMap(here.Route route) {
     // Show route as polyline.
     GeoPolyline routeGeoPolyline = GeoPolyline(route.polyline);
@@ -373,6 +421,7 @@ class RoutingExample {
     _hereMapController.mapScene.addMapPolyline(routeMapPolyline);
     _mapPolyLines.add(routeMapPolyline);
   }
+
   String _formatTime(int sec) {
     int hours = sec ~/ 3600;
     int minutes = (sec % 3600) ~/ 60;
@@ -386,11 +435,13 @@ class RoutingExample {
 
     return '$kilometers.$remainingMeters km';
   }
+
   Future<Uint8List> _loadFileAsUint8List(String fileName) async {
     // The path refers to the assets directory as specified in pubspec.yaml.
     ByteData fileData = await rootBundle.load('assets/' + fileName);
     return Uint8List.view(fileData.buffer);
   }
+
   // _showPolyLineOnMap(vertices){
   //   GeoPolyline polyline = GeoPolyline(vertices);
   //   MapPolyline mapPolyline = MapPolyline(
@@ -403,8 +454,8 @@ class RoutingExample {
     GeoPolygon isolineGeoPolylgon = GeoPolygon(vertices);
 
     //double widthInPixels = 20;
-    MapPolygon isolineMapPolygon = MapPolygon(
-        isolineGeoPolylgon, Color.fromARGB(160, 0, 144, 180));
+    MapPolygon isolineMapPolygon =
+        MapPolygon(isolineGeoPolylgon, Color.fromARGB(160, 0, 144, 180));
 
     _hereMapController.mapScene.addMapPolygon(isolineMapPolygon);
     _mapPolygons.add(isolineMapPolygon);
@@ -413,33 +464,33 @@ class RoutingExample {
   void _setTapGestureHandler() {
     _hereMapController.gestures.tapListener =
         TapListener.fromLambdas(lambda_onTap: (Point2D touchPoint) {
-          _pickMapMarker(touchPoint);
-        });
+      _pickMapMarker(touchPoint);
+    });
   }
 
   void _pickMapMarker(Point2D touchPoint) {
     double radiusInPixel = 2;
     _hereMapController.pickMapItems(touchPoint, radiusInPixel,
-            (pickMapItemsResult) {
-          List<MapMarker> mapMarkerList = pickMapItemsResult.markers;
-          if (mapMarkerList.length == 0) {
-            print("No map markers found.");
-            return;
-          }
+        (pickMapItemsResult) {
+      List<MapMarker> mapMarkerList = pickMapItemsResult.markers;
+      if (mapMarkerList.length == 0) {
+        print("No map markers found.");
+        return;
+      }
 
-          MapMarker topmostMapMarker = mapMarkerList.first;
-          Metadata metadata = topmostMapMarker.metadata;
-          if (metadata != null) {
-            String message = metadata.getString("key_poi") ?? "No message found.";
-            double lat =  metadata.getDouble("latitude");
-            double lon =  metadata.getDouble("longitude");
+      MapMarker topmostMapMarker = mapMarkerList.first;
+      Metadata metadata = topmostMapMarker.metadata;
+      if (metadata != null) {
+        String message = metadata.getString("key_poi") ?? "No message found.";
+        double lat = metadata.getDouble("latitude");
+        double lon = metadata.getDouble("longitude");
 
-            _showDialogWithInfo("Name", message, GeoCoordinates(lat, lon));
-            return;
-          }
+        _showDialogWithInfo("Name", message, GeoCoordinates(lat, lon));
+        return;
+      }
 
-          _showDialog("Map Marker picked", "No metadata attached.");
-        });
+      _showDialog("Map Marker picked", "No metadata attached.");
+    });
   }
 
   GeoCoordinates _createRandomGeoCoordinatesInViewport() {
@@ -462,9 +513,11 @@ class RoutingExample {
 
     return new GeoCoordinates(lat, lon);
   }
-  _routeMaker(GeoCoordinates destination){
+
+  _routeMaker(GeoCoordinates destination) {
     getRoute(destination);
   }
+
   double _getRandom(double min, double max) {
     return min + Random().nextDouble() * (max - min);
   }
@@ -495,7 +548,14 @@ class RoutingExample {
       },
     );
   }
-  Future<void> _showDialogWithInfo(String title, String message, GeoCoordinates geo) async {
+
+  void showToast(String text) {
+    Toast.show(text, _context,
+        duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
+  }
+
+  Future<void> _showDialogWithInfo(
+      String title, String message, GeoCoordinates geo) async {
     return showDialog<void>(
       context: _context,
       barrierDismissible: false,
