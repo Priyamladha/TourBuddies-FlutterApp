@@ -16,7 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-import 'dart:math';
+import 'dart:math' show Random;
+import 'package:random_string/random_string.dart';
 import 'dart:typed_data';
 
 
@@ -32,6 +33,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 
+import 'welcome_screen.dart';
 import 'MapMarkerExample.dart';
 
 //void main() async{
@@ -45,7 +47,8 @@ import 'MapMarkerExample.dart';
 //  runApp(MaterialApp(home: MyApp()));
 //}
 class TrackingScreen extends StatefulWidget {
-  static String id = 'chat_screen';
+  static String id = 'tracking_screen';
+  static String collection_name;
 
   @override
   _TrackingScreenState createState() => _TrackingScreenState();
@@ -66,8 +69,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+    // print(generateRandomString(20));
+    print(randomAlphaNumeric(10));
   }
-
+  // YdEWFHoOmigH8CfI2yUip5z2zP12
+  // BRUb6YkR5bSdIYdAshTBqJmFm2B2
+  // w40JWW4L73NSazHnEMBI
   void getCurrentUser(){
     try {
       final user = _auth.currentUser;
@@ -83,6 +90,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
   }
 
+  String generateRandomString(int len) {
+    var r = Random();
+    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     _context = context;
@@ -96,7 +109,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 onPressed: () {
 //                moodsStream();
                   _auth.signOut();
-                  Navigator.pop(context);
+                  // Navigator.pop(context);
+                  // Navigator.push(context, route)
+                  Navigator.popUntil(context, (route) => route.isFirst);
                 }),
           ],
           title: Text('Tracking',),
@@ -181,7 +196,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     };
     bool docExists = await checkIfDocExists(useruid);
 //    print("Document exists in Firestore? " + docExists.toString());
-    CollectionReference collectionReference = FirebaseFirestore.instance.collection('Location');
+    CollectionReference collectionReference = FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
     if(docExists){
       DocumentReference documentReference= collectionReference.doc(useruid);
       documentReference.update(demodata);
@@ -205,7 +220,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Future<bool> checkIfDocExists(String docId) async {
     try {
       // Get reference to Firestore collection
-      var collectionRef = FirebaseFirestore.instance.collection('Location');
+      var collectionRef = FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
 
       var doc = await collectionRef.doc(docId).get();
       return doc.exists;

@@ -32,6 +32,7 @@ import 'screens/login_screen.dart';
 import 'screens/registration_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/tracking_screen.dart';
+import 'screens/lobby_screen.dart';
 
 void main() async{
   SdkContext.init(IsolateOrigin.main);
@@ -61,6 +62,7 @@ class MyApp extends StatelessWidget {
         LoginScreen.id: (context) => LoginScreen(),
         RegistrationScreen.id: (context) => RegistrationScreen(),
         TrackingScreen.id: (context) => TrackingScreen(),
+        LobbyScreen.id: (context) => LobbyScreen(),
       },
     );
   }
