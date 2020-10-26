@@ -72,7 +72,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     print(randomAlphaNumeric(10));
   }
   // YdEWFHoOmigH8CfI2yUip5z2zP12
-  // BRUb6YkR5bSdIYdAshTBqJmFm2B2
+  // BRUb6YkR5bSdIYdAshTBqJmFm2B2'
   // w40JWW4L73NSazHnEMBI
   void getCurrentUser(){
     try {
@@ -87,12 +87,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
     } catch (e) {
       print(e);
     }
-  }
-
-  String generateRandomString(int len) {
-    var r = Random();
-    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
   }
 
   @override
@@ -118,7 +112,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
         body: Stack(
           children: <Widget>[
             HereMap(
-
                 onMapCreated: _onMapCreated
             ),
             StreamBuilder<Position>(
@@ -172,7 +165,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
       ),
     );
   }
-  
+  //change1
   void _onMapCreated(HereMapController hereMapController) {
     hereMapController.mapScene.loadSceneForMapScheme(MapScheme.hybridDay,
             (MapError error) {
@@ -186,7 +179,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           }
         });
   }
-
+  //change2
   void _anchoredMapMarkersButtonClicked (double lat, double long) async {
 
     Map<String,dynamic> demodata = {
@@ -216,6 +209,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
 
   }
+  // if doc exists -  change3
   Future<bool> checkIfDocExists(String docId) async {
     try {
       // Get reference to Firestore collection
@@ -268,7 +262,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //}
 //
 
-
+// Qr code
 class MyDrawer extends StatelessWidget {
   final Function onTap;
   MyDrawer({
