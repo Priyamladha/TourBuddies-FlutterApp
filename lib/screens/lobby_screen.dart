@@ -13,7 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class LobbyScreen extends StatefulWidget {
   static String id = 'lobby_screen';
@@ -28,6 +28,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
   String key;
   // String password;
   bool spinner = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,8 +69,11 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     ),
                   ),
                 ),
+                SizedBox(
+                  height: 20.0,
+                ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 30.0),
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
                   child: Material(
                     color: Colors.blueAccent,
                     borderRadius: BorderRadius.all(Radius.circular(30.0)),
@@ -105,7 +109,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 0.0),
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
                   child: Material(
                     color: Colors.blueAccent,
                     borderRadius: BorderRadius.all(Radius.circular(30.0)),
@@ -135,11 +139,43 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     ),
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Material(
+                    color: Colors.blueAccent,
+                    borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                    elevation: 5.0,
+                    child: MaterialButton(
+                      onPressed: ()=>_scan(),
+                      minWidth: 200.0,
+                      height: 42.0,
+                      child: Text(
+                        'Scan QR',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+                // FlatButton(
+                //   child: Text("Scan Barcode"),
+                //   onPressed: ()=>_scan(),
+                // ),
               ],
           ),
       ),
     );
   }
+  _scan () async{
+    await FlutterBarcodeScanner.scanBarcode("#000000","Cancel",true,ScanMode.QR).then((value) => setState(()=>key = value));
+    print(key);
+    bool docExists = await checkIfCollectionExists();
+    print(docExists);
+    if(docExists){
+      TrackingScreen.collection_name = key;
+      Navigator.pushNamed(context, TrackingScreen.id);
+    }
+  }
+
   Future<bool> checkIfCollectionExists() async {
       // Get reference to Firestore collection
       var collectionRef = FirebaseFirestore.instance.collection(key);

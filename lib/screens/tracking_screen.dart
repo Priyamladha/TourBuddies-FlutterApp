@@ -20,12 +20,11 @@ import 'dart:math' show Random;
 import 'package:random_string/random_string.dart';
 import 'dart:typed_data';
 
-
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:here_sdk/core.dart';
 import 'package:here_sdk/gestures.dart';
 import 'package:here_sdk/mapview.dart';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -169,11 +168,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //            ),
           ],
         ),
+        drawer: MyDrawer(),
       ),
     );
   }
-
-
+  
   void _onMapCreated(HereMapController hereMapController) {
     hereMapController.mapScene.loadSceneForMapScheme(MapScheme.hybridDay,
             (MapError error) {
@@ -270,15 +269,50 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //
 
 
-class HomeView extends StatelessWidget {
-//  const HomeView({Key key}) : super(key: key);
-
+class MyDrawer extends StatelessWidget {
+  final Function onTap;
+  MyDrawer({
+    this.onTap
+});
   @override
   Widget build(BuildContext context) {
-//    var userLocation = Provider.of<UserLocation>(context);
-    return Center(
-      child: Text(
-          'hello there friends'),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width*0.8,
+      child: Drawer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Padding(
+                padding: EdgeInsets.all(6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Container(
+                      width: 100,
+                      height: 100,
+                      child: QrImage(
+                        data: TrackingScreen.collection_name,
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 3,
+                    ),
+                    Text(TrackingScreen.collection_name,
+                    style: TextStyle(
+                    color: Colors.black
+                    ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
