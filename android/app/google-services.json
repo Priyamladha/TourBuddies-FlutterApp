@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "649095424374",
+    "firebase_url": "https://tourbuddies-587e6.firebaseio.com",
+    "project_id": "tourbuddies-587e6",
+    "storage_bucket": "tourbuddies-587e6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:649095424374:android:7321b43154f5d4efd9b257",
+        "android_client_info": {
+          "package_name": "com.here.sdk.examples.mapmarker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "649095424374-1oa7mp6alebqe0tuqqq6fdto3e8l656f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4HamNGjp9O9QQ7-ctsfU8XFgMJ4uOq8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "649095424374-1oa7mp6alebqe0tuqqq6fdto3e8l656f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
