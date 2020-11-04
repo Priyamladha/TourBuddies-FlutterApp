@@ -84,6 +84,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                       print(docExists);
                       if (docExists) {
                         TrackingScreen.collection_name = key;
+                        TrackingScreen.admin_flag = false;
                         Navigator.pushNamed(context, TrackingScreen.id);
                       } else
                         spinner = false;
@@ -117,6 +118,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     try {
                       String temp = randomAlphaNumeric(5);
                       TrackingScreen.collection_name = temp;
+                      TrackingScreen.admin_flag = true;
                       Navigator.pushNamed(context, TrackingScreen.id);
                     } catch (e) {
                       print(e);
@@ -170,6 +172,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     print(docExists);
     if (docExists) {
       TrackingScreen.collection_name = key;
+      TrackingScreen.admin_flag = false;
       Navigator.pushNamed(context, TrackingScreen.id);
     }
   }

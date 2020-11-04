@@ -44,6 +44,7 @@ import 'MapMarkerExample.dart';
 class TrackingScreen extends StatefulWidget {
   static String id = 'tracking_screen';
   static String collection_name;
+  static var admin_flag;
 
   @override
   _TrackingScreenState createState() => _TrackingScreenState();
@@ -89,6 +90,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     _context = context;
@@ -126,9 +128,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 floatingButton(_clearIsoline, Icons.clear, "Clear Isoline"),
                 floatingButton(_clearRoute, Icons.arrow_back, "Clear Routes"),
                 floatingButton(_clearPlaces, Icons.place, "Clear Places"),
+
                 // switchButton(Icons.place),
                 //floatingButton(_getPlacesClicked, Icons.local_cafe),
               ],
+            ),
+            Visibility(
+                child: Text("Master Coordinates"),
+                visible: TrackingScreen.admin_flag,
             ),
             switchButton(Icons.place),
             StreamBuilder<Position>(
@@ -209,16 +216,22 @@ class _TrackingScreenState extends State<TrackingScreen> {
       documentReference.update(demodata);
     } else {
       collectionReference.doc(useruid).set(demodata);
+      if(TrackingScreen.admin_flag){
+        collectionReference.doc("MasterCoordinates").set(demodata);
+      }
     }
 
     final locations = await collectionReference.get();
 
     _mapMarkerExample.clearMap();
     for (var location in locations.docs) {
+      // print(location.id);
+      if(location.id!="MasterCoordinates"){
       double temp_lat = location.data().values.first;
       double temp_long = location.data().values.last;
       _mapMarkerExample.showAnchoredMapMarkers(temp_lat, temp_long);
-    }
+        }
+      }
   }
 
   Future<bool> checkIfDocExists(String docId) async {
@@ -254,9 +267,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
     );
   }
 
-  void _addRouteButtonClicked() {
+  void _addRouteButtonClicked() async{
     _routingExample.clearIsoline();
-    _routingExample.addRoute();
+    CollectionReference collectionReference =
+    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+    final masterlocation = await documentReference.get();
+    double lat = masterlocation.data().values.first;
+    double long = masterlocation.data().values.last;
+    _routingExample.addRoute(lat,long);
   }
 
   void _clearMapButtonClicked() {
@@ -271,8 +290,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
     _routingExample.clearIsoline();
   }
 
-  void _getPlacesClicked(List<String> items) {
-    _routingExample.getPlaces(items);
+  void _getPlacesClicked(List<String> items) async{
+    CollectionReference collectionReference =
+    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+    final masterlocation = await documentReference.get();
+    double lat = masterlocation.data().values.first;
+    double long = masterlocation.data().values.last;
+    _routingExample.getPlaces(items,lat,long);
   }
 
   void _clearRoute() {
@@ -421,6 +446,17 @@ class ListPage extends State<ListP> {
 
 class MyDrawer extends StatelessWidget {
   final Function onTap;
+
+  void onTapMaster() async {
+    Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    // print(position);
+    Map<String, dynamic> demodata = {"Latitude": position.latitude, "Longitude": position.longitude};
+    CollectionReference collectionReference =
+    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+    documentReference.update(demodata);
+  }
+
   MyDrawer({this.onTap});
   @override
   Widget build(BuildContext context) {
@@ -456,10 +492,24 @@ class MyDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-            )
+            ),
+            Visibility(
+              child: ListTile(
+                leading: Icon(Icons.location_pin),
+                title: Text("Update Master Coordinates"),
+                onTap: () => onTapMaster(),
+              ),
+              visible: TrackingScreen.admin_flag,
+            ),
           ],
         ),
       ),
     );
+
+    _onTapMaster() {
+      print("hello");
+    }
+
+
   }
 }

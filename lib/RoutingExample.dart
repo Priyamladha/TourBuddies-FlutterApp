@@ -43,6 +43,7 @@ class RoutingExample {
   List<MapPolyline> _mapPolyLines = [];
   RoutingEngine _routingEngine;
   int counter = 0;
+  List<GeoCoordinates> isolinevertices = new List<GeoCoordinates>();
   // List<GeoCoordinates> polylineMid = new List<GeoCoordinates>();
 
   RoutingExample(BuildContext context, HereMapController hereMapController) {
@@ -119,7 +120,7 @@ class RoutingExample {
     });
   }
 
-  Future<void> addRoute() async {
+  Future<void> addRoute(double lat, double long) async {
     // var startGeoCoordinates = _createRandomGeoCoordinatesInViewport();
     // var destinationGeoCoordinates = _createRandomGeoCoordinatesInViewport();
     // var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
@@ -136,9 +137,9 @@ class RoutingExample {
     // }
 
     //await (vertices) async {
-    List<GeoCoordinates> vertices = new List<GeoCoordinates>();
-    vertices = await getVerts();
-    _showIsoOnMap(vertices);
+    // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
+    isolinevertices = await getVerts(lat,long);
+    _showIsoOnMap(isolinevertices);
     // if (routingError == null) {
     //   here.Route route = routeList.first;
     //   _showRouteDetails(route);
@@ -150,8 +151,8 @@ class RoutingExample {
     //};
   }
 
-  Future<void> getPlaces(List<String> items) async {
-    List<GeoCoordinates> vertices = new List<GeoCoordinates>();
+  Future<void> getPlaces(List<String> items,var lat,var long) async {
+    // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
     // vertices = await getVerts();
     // var k = (vertices.length/2);
     // Add possible categories to this list.
@@ -209,11 +210,13 @@ class RoutingExample {
     }
     //cats.add(PlaceCategory.withId(PlaceCategory.eatAndDrink));
     _hereMapController.camera
-        .lookAtPointWithDistance(GeoCoordinates(28.3654, 77.3233), 1200);
+        .lookAtPointWithDistance(GeoCoordinates(lat, long), 1200);
     print(cats);
-    vertices = await getVerts();
+    // vertices = await getVerts(lat,long);
+    // print(isolinevertices);
+    // print("hello");
     List<Point> lp = new List<Point>();
-    for (GeoCoordinates gc in vertices) {
+    for (GeoCoordinates gc in isolinevertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
     Polygon polygon = new Polygon(lp);
@@ -233,12 +236,12 @@ class RoutingExample {
     }
   }
 
-  Future<List<GeoCoordinates>> getVerts() async {
+  Future<List<GeoCoordinates>> getVerts(var lat,var lon) async {
     Map data;
     List coordinates;
     List<GeoCoordinates> vertices = List<GeoCoordinates>();
-    var lat = 28.3654;
-    var lon = 77.3233;
+    // var lat = 28.3654;
+    // var lon = 77.3233;
     var range = 300;
     var rangeType = "distance";
     var response = await http.get(
@@ -260,10 +263,10 @@ class RoutingExample {
   }
 
   Future<int> getDeets(SearchError e, List<Place> results) async {
-    List<GeoCoordinates> vertices = new List<GeoCoordinates>();
-    vertices = await getVerts();
+    // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
+    // vertices = await getVerts();
     List<Point> lp = new List<Point>();
-    for (GeoCoordinates gc in vertices) {
+    for (GeoCoordinates gc in isolinevertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
     Polygon polygon = new Polygon(lp);
