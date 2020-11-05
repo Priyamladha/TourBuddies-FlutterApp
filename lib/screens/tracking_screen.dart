@@ -133,10 +133,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 //floatingButton(_getPlacesClicked, Icons.local_cafe),
               ],
             ),
-            Visibility(
-                child: Text("Master Coordinates"),
-                visible: TrackingScreen.admin_flag,
-            ),
             switchButton(Icons.place),
             StreamBuilder<Position>(
                 stream:

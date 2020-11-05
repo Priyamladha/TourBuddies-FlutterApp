@@ -33,6 +33,7 @@ import 'package:here_sdk/search.dart';
 import 'package:http/http.dart' as http;
 import 'package:poly/poly.dart';
 import 'package:toast/toast.dart';
+import 'package:geolocator/geolocator.dart';
 
 class RoutingExample {
   BuildContext _context;
@@ -51,13 +52,13 @@ class RoutingExample {
     _hereMapController = hereMapController;
 
     double distanceToEarthInMeters = 1000;
-    _hereMapController.camera.lookAtPointWithDistance(
-        GeoCoordinates(28.3654, 77.3233), distanceToEarthInMeters);
+    // _hereMapController.camera.lookAtPointWithDistance(
+    //     GeoCoordinates(28.3654, 77.3233), distanceToEarthInMeters);
     // Setting a tap handler to pick markers from map.
 
     _setTapGestureHandler();
 
-    _addPOIMapMarkerUser(GeoCoordinates(28.3654, 77.3233), 0);
+    // _addPOIMapMarkerUser(GeoCoordinates(28.3654, 77.3233), 0);
     _routingEngine = new RoutingEngine();
   }
   // Future<void> plotRoute() async{
@@ -101,7 +102,8 @@ class RoutingExample {
   // }
   Future<void> getRoute(GeoCoordinates geoc) async {
     var startGeoCoordinates = geoc;
-    var destinationGeoCoordinates = GeoCoordinates(28.3654, 77.3233);
+    Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    var destinationGeoCoordinates = GeoCoordinates(position.latitude, position.longitude);
     var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
     var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
 
