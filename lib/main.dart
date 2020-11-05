@@ -20,6 +20,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:here_sdk/core.dart';
+import 'package:mapmarker/screens/chat_screen.dart';
 
 import 'screens/lobby_screen.dart';
 import 'screens/login_screen.dart';
@@ -45,11 +46,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData.dark().copyWith(
-        textTheme: TextTheme(
-          bodyText2: TextStyle(color: Colors.white),
-        ),
-      ),
+      // theme: ThemeData.light().copyWith(
+      //   textTheme: TextTheme(
+      //     bodyText2: TextStyle(color: Colors.black),
+      //   ),
+      // ),
       initialRoute: WelcomeScreen.id,
       routes: {
         WelcomeScreen.id: (context) => WelcomeScreen(),
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         RegistrationScreen.id: (context) => RegistrationScreen(),
         TrackingScreen.id: (context) => TrackingScreen(),
         LobbyScreen.id: (context) => LobbyScreen(),
+        ChatScreen.id: (context) => ChatScreen(),
       },
     );
   }

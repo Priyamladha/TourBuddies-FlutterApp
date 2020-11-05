@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:here_sdk/mapview.dart';
+import 'package:mapmarker/screens/chat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:random_string/random_string.dart';
 
@@ -54,7 +55,7 @@ class TrackingScreen extends StatefulWidget {
 class _TrackingScreenState extends State<TrackingScreen> {
   // Use _context only within the scope of this widget.
   BuildContext _context;
-  MyDrawer _myDrawer;
+  // MyDrawer _myDrawer;
   RoutingExample _routingExample;
   MapMarkerExample _mapMarkerExample;
   final _auth = FirebaseAuth.instance;
@@ -188,7 +189,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //            ),
           ],
         ),
-        drawer: MyDrawer(),
+        drawer: MyDrawer(trackcontext:_context),
       ),
     );
   }
@@ -216,6 +217,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //    print("Document exists in Firestore? " + docExists.toString());
     CollectionReference collectionReference =
         FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+
     if (docExists) {
       DocumentReference documentReference = collectionReference.doc(useruid);
       documentReference.update(demodata);
@@ -451,7 +453,7 @@ class ListPage extends State<ListP> {
 
 class MyDrawer extends StatelessWidget {
   final Function onTap;
-
+  final BuildContext trackcontext;
   void onTapMaster() {
     // print(TrackingScreen.current_lat);
     // print(long);
@@ -462,7 +464,13 @@ class MyDrawer extends StatelessWidget {
     documentReference.update(demodata);
   }
 
-  MyDrawer({this.onTap});
+  void onTapChat() {
+    String msgcollection = TrackingScreen.collection_name +"_messages";
+    ChatScreen.collection_name = msgcollection;
+    Navigator.pushNamed(trackcontext, ChatScreen.id);
+  }
+
+  MyDrawer({this.onTap, this.trackcontext});
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -505,6 +513,11 @@ class MyDrawer extends StatelessWidget {
                 onTap: () => onTapMaster(),
               ),
               visible: TrackingScreen.admin_flag,
+            ),
+            ListTile(
+              leading: Icon(Icons.chat),
+              title: Text("Chat with group"),
+              onTap: () => onTapChat(),
             ),
           ],
         ),
