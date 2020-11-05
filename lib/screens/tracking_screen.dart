@@ -45,7 +45,8 @@ class TrackingScreen extends StatefulWidget {
   static String id = 'tracking_screen';
   static String collection_name;
   static var admin_flag;
-
+  static double current_lat;
+  static double current_long;
   @override
   _TrackingScreenState createState() => _TrackingScreenState();
 }
@@ -53,6 +54,7 @@ class TrackingScreen extends StatefulWidget {
 class _TrackingScreenState extends State<TrackingScreen> {
   // Use _context only within the scope of this widget.
   BuildContext _context;
+  MyDrawer _myDrawer;
   RoutingExample _routingExample;
   MapMarkerExample _mapMarkerExample;
   final _auth = FirebaseAuth.instance;
@@ -142,8 +144,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
                   if (snapshot != null && startlocationstream) {
 //                    print("marker true");
+
                     lat = snapshot.data.latitude;
                     long = snapshot.data.longitude;
+                    TrackingScreen.current_lat =lat;
+                    TrackingScreen.current_long =long;
+                    // print(TrackingScreen.current_lat);
+                        _routingExample.current_lat = lat;
+                    _routingExample.current_long = long;
                     _anchoredMapMarkersButtonClicked(lat, long);
 //                    sleep(new Duration(seconds: 5));
                   }
@@ -202,6 +210,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _anchoredMapMarkersButtonClicked(double lat, double long) async {
+    // print("stream ok");
     Map<String, dynamic> demodata = {"Latitude": lat, "Longitude": long};
     bool docExists = await checkIfDocExists(useruid);
 //    print("Document exists in Firestore? " + docExists.toString());
@@ -443,10 +452,10 @@ class ListPage extends State<ListP> {
 class MyDrawer extends StatelessWidget {
   final Function onTap;
 
-  void onTapMaster() async {
-    Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    // print(position);
-    Map<String, dynamic> demodata = {"Latitude": position.latitude, "Longitude": position.longitude};
+  void onTapMaster() {
+    // print(TrackingScreen.current_lat);
+    // print(long);
+    Map<String, dynamic> demodata = {"Latitude": TrackingScreen.current_lat, "Longitude": TrackingScreen.current_long};
     CollectionReference collectionReference =
     FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
     DocumentReference documentReference = collectionReference.doc("MasterCoordinates");

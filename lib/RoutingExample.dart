@@ -43,6 +43,8 @@ class RoutingExample {
   List<MapPolygon> _mapPolygons = [];
   List<MapPolyline> _mapPolyLines = [];
   RoutingEngine _routingEngine;
+  var current_lat;
+  var current_long;
   int counter = 0;
   List<GeoCoordinates> isolinevertices = new List<GeoCoordinates>();
   // List<GeoCoordinates> polylineMid = new List<GeoCoordinates>();
@@ -101,21 +103,26 @@ class RoutingExample {
   //       });
   // }
   Future<void> getRoute(GeoCoordinates geoc) async {
-    var startGeoCoordinates = geoc;
-    Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    var destinationGeoCoordinates = GeoCoordinates(position.latitude, position.longitude);
+
+    // print(current_lat);
+    // print(current_long);
+    var startGeoCoordinates = GeoCoordinates(current_lat, current_long);
+    var destinationGeoCoordinates = geoc;
     var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
     var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
-
+    //
     List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
-
+  // print("inside getroute");
     await _routingEngine.calculateCarRoute(waypoints, CarOptions.withDefaults(),
         (RoutingError routingError, List<here.Route> routeList) async {
       if (routingError == null) {
         here.Route route = routeList.first;
         _showRouteDetails(route);
         _showRouteOnMap(route);
+        // print("route");
+        // return;
       } else {
+        // print("no route");
         var error = routingError.toString();
         _showDialog('Error', 'Error while calculating a route: $error');
       }
@@ -401,7 +408,7 @@ class RoutingExample {
     _mapPolyLines.clear();
   }
 
-  void _showRouteDetails(here.Route route) {
+  void _showRouteDetails(here.Route route) async{
     int estimatedTravelTimeInSeconds = route.durationInSeconds;
     int lengthInMeters = route.lengthInMeters;
 
@@ -413,7 +420,7 @@ class RoutingExample {
     _showDialog('Route Details', '$routeDetails');
   }
 
-  _showRouteOnMap(here.Route route) {
+  _showRouteOnMap(here.Route route) async{
     // Show route as polyline.
     GeoPolyline routeGeoPolyline = GeoPolyline(route.polyline);
 
