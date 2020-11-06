@@ -47,6 +47,8 @@ class RoutingExample {
   var current_long;
   int counter = 0;
   List<GeoCoordinates> isolinevertices = new List<GeoCoordinates>();
+  final List<String> drawerPlaces = new List<String>();
+  final List<GeoCoordinates> drawerPoints = new List<GeoCoordinates>();
   // List<GeoCoordinates> polylineMid = new List<GeoCoordinates>();
 
   RoutingExample(BuildContext context, HereMapController hereMapController) {
@@ -103,7 +105,6 @@ class RoutingExample {
   //       });
   // }
   Future<void> getRoute(GeoCoordinates geoc) async {
-
     // print(current_lat);
     // print(current_long);
     var startGeoCoordinates = GeoCoordinates(current_lat, current_long);
@@ -112,7 +113,7 @@ class RoutingExample {
     var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
     //
     List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
-  // print("inside getroute");
+    // print("inside getroute");
     await _routingEngine.calculateCarRoute(waypoints, CarOptions.withDefaults(),
         (RoutingError routingError, List<here.Route> routeList) async {
       if (routingError == null) {
@@ -130,61 +131,11 @@ class RoutingExample {
   }
 
   Future<void> addRoute(double lat, double long) async {
-    // var startGeoCoordinates = _createRandomGeoCoordinatesInViewport();
-    // var destinationGeoCoordinates = _createRandomGeoCoordinatesInViewport();
-    // var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
-    // var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
-
-    // var count =0;
-    // for (var listel in list2){
-    //   count++;
-    //   if (count == 5){
-    //     var latel = listel.latitude;
-    //     var longel = listel.longitude;
-    //     _showDialog("Location of this item", "is : $latel, $longel");
-    //   }
-    // }
-
-    //await (vertices) async {
-    // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
-    isolinevertices = await getVerts(lat,long);
+    isolinevertices = await getVerts(lat, long);
     _showIsoOnMap(isolinevertices);
-    // if (routingError == null) {
-    //   here.Route route = routeList.first;
-    //   _showRouteDetails(route);
-    //   _showRouteOnMap(route);
-    // } else {
-    //   var error = routingError.toString();
-    //   _showDialog('Error', 'Error while calculating a route: $error');
-    // }
-    //};
   }
 
-  Future<void> getPlaces(List<String> items,var lat,var long) async {
-    // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
-    // vertices = await getVerts();
-    // var k = (vertices.length/2);
-    // Add possible categories to this list.
-
-    // Center of the area.
-    //GeoCoordinates center = new GeoCoordinates(28.3654, 77.3233);
-    // double meters = 50;
-    // double coef = meters * 0.0000089;
-    // Replace 17, 78 with actual lat and lon
-    // double nlat = 28.3654 + coef;
-    // double nlong = 77.3233 + coef / cos(28.3654 * 0.018);
-
-    // polylineMid.add(new GeoCoordinates(17.364, 78.475));
-    // polylineMid.add(new GeoCoordinates(17.358, 78.474));
-    // polylineMid.add(new GeoCoordinates(17.356, 78.472));
-    // polylineMid.add(new GeoCoordinates(17.356, 78.474));
-    // polylineMid.add(vertices[0]);
-    // polylineMid.add(vertices[k.toInt()]);
-    // polylineMid.add(_createRandomGeoCoordinatesInViewport());
-    // polylineMid.add(_createRandomGeoCoordinatesInViewport());
-    // _showPolyLineOnMap(polylineMid);
-    // plotRoute();
-
+  Future<void> getPlaces(List<String> items, var lat, var long) async {
     SearchEngine se = new SearchEngine();
     // Add possible categories to this list.
     Map<String, List<String>> map = {
@@ -230,6 +181,8 @@ class RoutingExample {
     }
     Polygon polygon = new Polygon(lp);
     counter = 0;
+    drawerPlaces.clear();
+    drawerPoints.clear();
     for (int i = 0; i < 25; i++) {
       // Center of the area.
       GeoCoordinates center =
@@ -245,7 +198,15 @@ class RoutingExample {
     }
   }
 
-  Future<List<GeoCoordinates>> getVerts(var lat,var lon) async {
+  Future<List<String>> getPlaceDeets() async {
+    return drawerPlaces;
+  }
+
+  Future<List<GeoCoordinates>> getPlaceCoors() async {
+    return drawerPoints;
+  }
+
+  Future<List<GeoCoordinates>> getVerts(var lat, var lon) async {
     Map data;
     List coordinates;
     List<GeoCoordinates> vertices = List<GeoCoordinates>();
@@ -291,6 +252,9 @@ class RoutingExample {
           // _showDialog("place", "this");
           counter++;
           _addPOIMapMarker(place.geoCoordinates, 0, place);
+          drawerPlaces.add(place.title);
+          drawerPoints.add(place.geoCoordinates);
+          //drawerSubs.add(await _getRouteDetails(place.geoCoordinates));
         }
         // _addPOIMapMarker(place.geoCoordinates, 0);
         // if (count < 5){
@@ -408,7 +372,7 @@ class RoutingExample {
     _mapPolyLines.clear();
   }
 
-  void _showRouteDetails(here.Route route) async{
+  void _showRouteDetails(here.Route route) async {
     int estimatedTravelTimeInSeconds = route.durationInSeconds;
     int lengthInMeters = route.lengthInMeters;
 
@@ -420,7 +384,7 @@ class RoutingExample {
     _showDialog('Route Details', '$routeDetails');
   }
 
-  _showRouteOnMap(here.Route route) async{
+  _showRouteOnMap(here.Route route) async {
     // Show route as polyline.
     GeoPolyline routeGeoPolyline = GeoPolyline(route.polyline);
 

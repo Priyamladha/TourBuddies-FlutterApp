@@ -24,11 +24,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:here_sdk/core.dart';
 import 'package:here_sdk/mapview.dart';
 import 'package:mapmarker/screens/chat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:random_string/random_string.dart';
 
+import '../RoutingExample.dart';
 import '../RoutingExample.dart';
 import 'MapMarkerExample.dart';
 
@@ -56,7 +58,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   // Use _context only within the scope of this widget.
   BuildContext _context;
   // MyDrawer _myDrawer;
-  RoutingExample _routingExample;
+  static RoutingExample routingExample;
   MapMarkerExample _mapMarkerExample;
   final _auth = FirebaseAuth.instance;
   User loggedInUser;
@@ -92,7 +94,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
       print(e);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +149,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
                     lat = snapshot.data.latitude;
                     long = snapshot.data.longitude;
-                    TrackingScreen.current_lat =lat;
-                    TrackingScreen.current_long =long;
+                    TrackingScreen.current_lat = lat;
+                    TrackingScreen.current_long = long;
                     // print(TrackingScreen.current_lat);
-                        _routingExample.current_lat = lat;
-                    _routingExample.current_long = long;
+                    routingExample.current_lat = lat;
+                    routingExample.current_long = long;
                     _anchoredMapMarkersButtonClicked(lat, long);
 //                    sleep(new Duration(seconds: 5));
                   }
@@ -189,7 +190,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //            ),
           ],
         ),
-        drawer: MyDrawer(trackcontext:_context),
+        drawer: DrawerMaker(trackcontext: _context),
       ),
     );
   }
@@ -201,7 +202,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 //            print("marker false");
 
         _mapMarkerExample = MapMarkerExample(_context, hereMapController);
-        _routingExample = RoutingExample(_context, hereMapController);
+        routingExample = RoutingExample(_context, hereMapController);
         //added flag by Priyam
         startlocationstream = true;
       } else {
@@ -223,7 +224,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
       documentReference.update(demodata);
     } else {
       collectionReference.doc(useruid).set(demodata);
-      if(TrackingScreen.admin_flag){
+      if (TrackingScreen.admin_flag) {
         collectionReference.doc("MasterCoordinates").set(demodata);
       }
     }
@@ -233,12 +234,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
     _mapMarkerExample.clearMap();
     for (var location in locations.docs) {
       // print(location.id);
-      if(location.id!="MasterCoordinates"){
-      double temp_lat = location.data().values.first;
-      double temp_long = location.data().values.last;
-      _mapMarkerExample.showAnchoredMapMarkers(temp_lat, temp_long);
-        }
+      if (location.id != "MasterCoordinates") {
+        double temp_lat = location.data().values.first;
+        double temp_long = location.data().values.last;
+        _mapMarkerExample.showAnchoredMapMarkers(temp_lat, temp_long);
       }
+    }
   }
 
   Future<bool> checkIfDocExists(String docId) async {
@@ -274,41 +275,43 @@ class _TrackingScreenState extends State<TrackingScreen> {
     );
   }
 
-  void _addRouteButtonClicked() async{
-    _routingExample.clearIsoline();
+  void _addRouteButtonClicked() async {
+    routingExample.clearIsoline();
     CollectionReference collectionReference =
-    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
-    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+        FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference =
+        collectionReference.doc("MasterCoordinates");
     final masterlocation = await documentReference.get();
     double lat = masterlocation.data().values.first;
     double long = masterlocation.data().values.last;
-    _routingExample.addRoute(lat,long);
+    routingExample.addRoute(lat, long);
   }
 
   void _clearMapButtonClicked() {
-    _routingExample.clearMap();
+    routingExample.clearMap();
   }
 
   void _clearPlaces() {
-    _routingExample.clearPlaces();
+    routingExample.clearPlaces();
   }
 
   void _clearIsoline() {
-    _routingExample.clearIsoline();
+    routingExample.clearIsoline();
   }
 
-  void _getPlacesClicked(List<String> items) async{
+  void _getPlacesClicked(List<String> items) async {
     CollectionReference collectionReference =
-    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
-    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+        FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference =
+        collectionReference.doc("MasterCoordinates");
     final masterlocation = await documentReference.get();
     double lat = masterlocation.data().values.first;
     double long = masterlocation.data().values.last;
-    _routingExample.getPlaces(items,lat,long);
+    routingExample.getPlaces(items, lat, long);
   }
 
   void _clearRoute() {
-    _routingExample.clearRoute();
+    routingExample.clearRoute();
   }
 
   SpeedDialChild floatingButton(
@@ -451,23 +454,64 @@ class ListPage extends State<ListP> {
   }
 }
 
-class MyDrawer extends StatelessWidget {
+class DrawerMaker extends StatefulWidget {
+  DrawerMaker({this.trackcontext});
+  final BuildContext trackcontext;
+  @override
+  MyDrawer createState() => new MyDrawer(trackcontext: this.trackcontext);
+}
+
+class MyDrawer extends State<DrawerMaker> {
   final Function onTap;
   final BuildContext trackcontext;
+  // elements for the listview
+  final List<Widget> listArray = [];
+  List<String> names = new List<String>();
+  List<GeoCoordinates> points = new List<GeoCoordinates>();
+  bool loading = true;
+  _TrackingScreenState tss;
+  RoutingExample re = _TrackingScreenState.routingExample;
+
   void onTapMaster() {
     // print(TrackingScreen.current_lat);
     // print(long);
-    Map<String, dynamic> demodata = {"Latitude": TrackingScreen.current_lat, "Longitude": TrackingScreen.current_long};
+    Map<String, dynamic> demodata = {
+      "Latitude": TrackingScreen.current_lat,
+      "Longitude": TrackingScreen.current_long
+    };
     CollectionReference collectionReference =
-    FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
-    DocumentReference documentReference = collectionReference.doc("MasterCoordinates");
+        FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+    DocumentReference documentReference =
+        collectionReference.doc("MasterCoordinates");
     documentReference.update(demodata);
   }
 
   void onTapChat() {
-    String msgcollection = TrackingScreen.collection_name +"_messages";
+    String msgcollection = TrackingScreen.collection_name + "_messages";
     ChatScreen.collection_name = msgcollection;
     Navigator.pushNamed(trackcontext, ChatScreen.id);
+  }
+
+  void awaitPlaceNames() async {
+    listArray.clear();
+    names = await re.getPlaceDeets();
+    points = await re.getPlaceCoors();
+    try {
+      if (names.length > 0) {
+        print(names.length);
+        for (var i = 0; i < names.length; i++) {
+          listArray.add(new ListTile(
+            title: new Text(names[i]),
+            onTap: () => re.getRoute(points[i]),
+          ));
+        }
+        setState(() {
+          loading = false;
+        });
+      }
+    } on NoSuchMethodError catch (e) {
+      print("error");
+    }
   }
 
   MyDrawer({this.onTap, this.trackcontext});
@@ -519,6 +563,23 @@ class MyDrawer extends StatelessWidget {
               title: Text("Chat with group"),
               onTap: () => onTapChat(),
             ),
+            ListTile(
+              leading: Icon(Icons.refresh),
+              title: Text("Refresh list"),
+              onTap: () => awaitPlaceNames(),
+            ),
+            Expanded(
+                child: ListView(
+              //awaitPlaceNames(),
+              children: loading ? [] : listArray,
+              // children: [
+              //   ListTile(
+              //     leading: Icon(Icons.chat),
+              //     title: Text("example"),
+              //     //onTap: () => onTapChat(),
+              //   ),
+              // ],
+            ))
           ],
         ),
       ),
@@ -527,7 +588,5 @@ class MyDrawer extends StatelessWidget {
     _onTapMaster() {
       print("hello");
     }
-
-
   }
 }
