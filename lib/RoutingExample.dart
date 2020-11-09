@@ -252,16 +252,8 @@ class RoutingExample {
           // _showDialog("place", "this");
           counter++;
           _addPOIMapMarker(place.geoCoordinates, 0, place);
-          bool flag = false;
-          for (var k in drawerPlaces) {
-            if (place.title == k) {
-              flag = true;
-            }
-          }
-          if (!flag) {
-            drawerPlaces.add(place.title);
-            drawerPoints.add(place.geoCoordinates);
-          }
+          drawerPlaces.add(place.title);
+          drawerPoints.add(place.geoCoordinates);
           //drawerSubs.add(await _getRouteDetails(place.geoCoordinates));
         }
         // _addPOIMapMarker(place.geoCoordinates, 0);
