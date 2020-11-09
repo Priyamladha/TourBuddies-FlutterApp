@@ -140,7 +140,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
             switchButton(Icons.place),
             StreamBuilder<Position>(
                 stream:
-                    getPositionStream(desiredAccuracy: LocationAccuracy.high),
+                    getPositionStream(desiredAccuracy: LocationAccuracy.medium),
                 builder: (context, snapshot) {
                   //return Text('lat : ${snapshot.data.latitude} Long :${snapshot.data.longitude}');
 
