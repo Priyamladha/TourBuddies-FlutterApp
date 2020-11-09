@@ -47,6 +47,7 @@ class RoutingExample {
   var current_long;
   int counter = 0;
   List<GeoCoordinates> isolinevertices = new List<GeoCoordinates>();
+  List<Point> lp = new List<Point>();
   final List<String> drawerPlaces = new List<String>();
   final List<GeoCoordinates> drawerPoints = new List<GeoCoordinates>();
   // List<GeoCoordinates> polylineMid = new List<GeoCoordinates>();
@@ -65,45 +66,18 @@ class RoutingExample {
     // _addPOIMapMarkerUser(GeoCoordinates(28.3654, 77.3233), 0);
     _routingEngine = new RoutingEngine();
   }
-  // Future<void> plotRoute() async{
-  //   var startGeoCoordinates = _createRandomGeoCoordinatesInViewport();
-  //   var destinationGeoCoordinates = _createRandomGeoCoordinatesInViewport();
-  //   print(startGeoCoordinates.latitude);
-  //   print(startGeoCoordinates.longitude);
-  //   print(destinationGeoCoordinates.latitude);
-  //   print(destinationGeoCoordinates.longitude);
-  //   /*
-  //     I/flutter ( 7702): 17.36492485375439
-  //     I/flutter ( 7702): 78.47585493746735
-  //     I/flutter ( 7702): 17.35850394629631
-  //     I/flutter ( 7702): 77.32336063576038
-  //    */
-  //   /*
-  //     I/flutter ( 5941): 17.35676148770954
-  //     I/flutter ( 5941): 78.47251274735606
-  //     I/flutter ( 5941): 17.356017159223004
-  //     I/flutter ( 5941): 78.47482530517634
-  //   */
-  //
-  //   var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
-  //   var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
-  //
-  //   List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
-  //
-  //   await _routingEngine.calculateCarRoute(waypoints, CarOptions.withDefaults(),
-  //           (RoutingError routingError, List<here.Route> routeList) async {
-  //         if (routingError == null) {
-  //           here.Route route = routeList.first;
-  //           // _showRouteDetails(route);
-  //           _showRouteOnMap(route);
-  //
-  //
-  //         } else {
-  //           var error = routingError.toString();
-  //           _showDialog('Error', 'Error while calculating a route: $error');
-  //         }
-  //       });
-  // }
+
+  Future<bool> isItIn(double lat, double lon) async {
+    if (lp.isNotEmpty) {
+      Polygon polygon = new Polygon(lp);
+      if (polygon.contains(lat, lon)) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
   Future<void> getRoute(GeoCoordinates geoc) async {
     // print(current_lat);
     // print(current_long);
@@ -114,8 +88,9 @@ class RoutingExample {
     //
     List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
     // print("inside getroute");
-    await _routingEngine.calculateCarRoute(waypoints, CarOptions.withDefaults(),
-        (RoutingError routingError, List<here.Route> routeList) async {
+    await _routingEngine
+        .calculatePedestrianRoute(waypoints, PedestrianOptions.withDefaults(),
+            (RoutingError routingError, List<here.Route> routeList) async {
       if (routingError == null) {
         here.Route route = routeList.first;
         _showRouteDetails(route);
@@ -132,6 +107,10 @@ class RoutingExample {
 
   Future<void> addRoute(double lat, double long) async {
     isolinevertices = await getVerts(lat, long);
+    lp.clear();
+    for (GeoCoordinates gc in isolinevertices) {
+      lp.add(Point(gc.latitude, gc.longitude));
+    }
     _showIsoOnMap(isolinevertices);
   }
 
@@ -166,16 +145,11 @@ class RoutingExample {
       for (var j in map[i]) {
         cats.add(PlaceCategory.withId(j));
       }
-      //cats.add(PlaceCategory.withId(map[i]));
     }
-    //cats.add(PlaceCategory.withId(PlaceCategory.eatAndDrink));
     _hereMapController.camera
         .lookAtPointWithDistance(GeoCoordinates(lat, long), 1200);
     print(cats);
-    // vertices = await getVerts(lat,long);
-    // print(isolinevertices);
-    // print("hello");
-    List<Point> lp = new List<Point>();
+    lp.clear();
     for (GeoCoordinates gc in isolinevertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
@@ -185,12 +159,10 @@ class RoutingExample {
     drawerPoints.clear();
     for (int i = 0; i < 25; i++) {
       // Center of the area.
-      GeoCoordinates center =
-          _createRandomGeoCoordinatesInViewport(); //new GeoCoordinates(28.3654, 77.3233);
+      GeoCoordinates center = _createRandomGeoCoordinatesInViewport();
       // Until random point is in the isoline polygon.
       while (!polygon.contains(center.latitude, center.longitude)) {
         center = _createRandomGeoCoordinatesInViewport();
-        //_addPOIMapMarker(center, 0);
       }
       CategoryQuery query = new CategoryQuery(cats, center);
 
@@ -220,22 +192,17 @@ class RoutingExample {
         headers: {"Accept": "application/json"});
     data = json.decode(response.body);
     coordinates = data["response"]["isoline"][0]["component"][0]["shape"];
-    // var gc = _createGeoCoordinates();
-    // var gc1 = gc.latitude;
-    // _showDialog("geocoordinate", "is: $gc1");
     for (var coordinate in coordinates) {
       vertices.add(GeoCoordinates(double.parse(coordinate.split(",")[0]),
           double.parse(coordinate.split(",")[1])));
-
-      //list2.add(new GeoCoordinates(52.530932,13.384915));
     }
     return vertices;
   }
 
-  Future<int> getDeets(SearchError e, List<Place> results) async {
+  Future<void> getDeets(SearchError e, List<Place> results) async {
     // List<GeoCoordinates> vertices = new List<GeoCoordinates>();
     // vertices = await getVerts();
-    List<Point> lp = new List<Point>();
+    lp.clear();
     for (GeoCoordinates gc in isolinevertices) {
       lp.add(Point(gc.latitude, gc.longitude));
     }
@@ -251,14 +218,16 @@ class RoutingExample {
           // print("Done");
           // _showDialog("place", "this");
           counter++;
-          _addPOIMapMarker(place.geoCoordinates, 0, place);
+          //_addPOIMapMarker(place.geoCoordinates, 0, place);
           bool flag = false;
           for (var k in drawerPlaces) {
             if (place.title == k) {
               flag = true;
+              break;
             }
           }
           if (!flag) {
+            _addPOIMapMarker(place.geoCoordinates, 0, place);
             drawerPlaces.add(place.title);
             drawerPoints.add(place.geoCoordinates);
           }

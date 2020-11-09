@@ -69,6 +69,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
   var useruid;
   List<String> result = new List<String>();
   static List<String> isChecked = [];
+  bool status = true;
+  int flag = 0;
 
   void initState() {
     super.initState();
@@ -155,6 +157,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     routingExample.current_lat = lat;
                     routingExample.current_long = long;
                     _anchoredMapMarkersButtonClicked(lat, long);
+                    awaitStatus(lat, long);
 //                    sleep(new Duration(seconds: 5));
                   }
 //                  else
@@ -242,6 +245,18 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
   }
 
+  void awaitStatus(double lat, double lon) async {
+    status = await routingExample.isItIn(lat, lon);
+    if (!status) {
+      if (flag == 1) {
+        _showDialog("Warning", "You're outside the range!");
+        flag++;
+      }
+    } else {
+      flag = 1;
+    }
+  }
+
   Future<bool> checkIfDocExists(String docId) async {
     try {
       // Get reference to Firestore collection
@@ -272,6 +287,33 @@ class _TrackingScreenState extends State<TrackingScreen> {
         onPressed: () => callbackFunction(),
         child: Text(buttonLabel, style: TextStyle(fontSize: 20)),
       ),
+    );
+  }
+
+  Future<void> _showDialog(String title, String message) async {
+    return showDialog<void>(
+      context: _context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
