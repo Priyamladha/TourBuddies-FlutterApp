@@ -33,7 +33,6 @@ import 'package:here_sdk/search.dart';
 import 'package:http/http.dart' as http;
 import 'package:poly/poly.dart';
 import 'package:toast/toast.dart';
-import 'package:geolocator/geolocator.dart';
 
 class RoutingExample {
   BuildContext _context;

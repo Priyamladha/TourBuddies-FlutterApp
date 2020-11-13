@@ -3,6 +3,7 @@ import 'package:mapmarker/constants.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:steel_crypt/steel_crypt.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User loggedInUser;
@@ -15,6 +16,10 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
+
   final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
 
@@ -77,8 +82,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   FlatButton(
                     onPressed: () {
                       messageTextController.clear();
+                      var encMsg = aes.gcm.encrypt(inp: messageText, iv: iv16);
                       _firestore.collection(ChatScreen.collection_name).add({
-                        'text': messageText,
+                        'text': encMsg,
                         'sender': loggedInUser.email,
                         'timestamp': FieldValue.serverTimestamp(),
                       });
@@ -99,23 +105,31 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class MessagesStream extends StatelessWidget {
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection(ChatScreen.collection_name).orderBy('timestamp').snapshots(),
+      stream: _firestore
+          .collection(ChatScreen.collection_name)
+          .orderBy('timestamp')
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
-              child: CircularProgressIndicator(
+            child: CircularProgressIndicator(
               backgroundColor: Colors.lightBlueAccent,
             ),
           );
         }
         final messages = snapshot.data.docs.reversed;
 
-            List<MessageBubble> messageBubbles = [];
+        List<MessageBubble> messageBubbles = [];
         for (var message in messages) {
-          final messageText = message.data()['text'];
+          //final messageText = message.data()['text'];
+          final messageText =
+              aes.gcm.decrypt(enc: message.data()['text'], iv: iv16);
           final messageSender = message.data()['sender'];
           print(message.data());
           final currentUser = loggedInUser.email;
@@ -142,6 +156,9 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
   MessageBubble({this.sender, this.text, this.isMe});
 
   final String sender;
@@ -154,7 +171,7 @@ class MessageBubble extends StatelessWidget {
       padding: EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment:
-        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             sender,
@@ -166,14 +183,14 @@ class MessageBubble extends StatelessWidget {
           Material(
             borderRadius: isMe
                 ? BorderRadius.only(
-                topLeft: Radius.circular(30.0),
-                bottomLeft: Radius.circular(30.0),
-                bottomRight: Radius.circular(30.0))
+                    topLeft: Radius.circular(30.0),
+                    bottomLeft: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0))
                 : BorderRadius.only(
-              bottomLeft: Radius.circular(30.0),
-              bottomRight: Radius.circular(30.0),
-              topRight: Radius.circular(30.0),
-            ),
+                    bottomLeft: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0),
+                    topRight: Radius.circular(30.0),
+                  ),
             elevation: 5.0,
             color: isMe ? Colors.lightBlueAccent : Colors.white,
             child: Padding(

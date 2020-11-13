@@ -29,8 +29,8 @@ import 'package:here_sdk/mapview.dart';
 import 'package:mapmarker/screens/chat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:random_string/random_string.dart';
+import 'package:steel_crypt/steel_crypt.dart';
 
-import '../RoutingExample.dart';
 import '../RoutingExample.dart';
 import 'MapMarkerExample.dart';
 
@@ -71,6 +71,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
   static List<String> isChecked = [];
   bool status = true;
   int flag = 0;
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
 
   void initState() {
     super.initState();
@@ -216,7 +219,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   void _anchoredMapMarkersButtonClicked(double lat, double long) async {
     // print("stream ok");
-    Map<String, dynamic> demodata = {"Latitude": lat, "Longitude": long};
+    var encLat = aes.gcm.encrypt(inp: lat.toString(), iv: iv16);
+    var encLon = aes.gcm.encrypt(inp: long.toString(), iv: iv16);
+    //print(encLat);
+    // print(key32);
+    // print(iv16);
+    // final encrypter = enc.Encrypter(enc.AES(key));
+    // var encLat = encrypter.encrypt(lat.toString(), iv: iv);
+    // var encLon = encrypter.encrypt(lat.toString(), iv: iv);
+    Map<String, dynamic> demodata = {"Latitude": encLat, "Longitude": encLon};
     bool docExists = await checkIfDocExists(useruid);
 //    print("Document exists in Firestore? " + docExists.toString());
     CollectionReference collectionReference =
@@ -238,8 +249,16 @@ class _TrackingScreenState extends State<TrackingScreen> {
     for (var location in locations.docs) {
       // print(location.id);
       if (location.id != "MasterCoordinates") {
-        double temp_lat = location.data().values.first;
-        double temp_long = location.data().values.last;
+        // var decLat = encrypter.decrypt(location.data().values.first, iv: iv);
+        // var decLon = encrypter.decrypt(location.data().values.last, iv: iv);
+        var decLat =
+            aes.gcm.decrypt(enc: location.data().values.first, iv: iv16);
+        var decLon =
+            aes.gcm.decrypt(enc: location.data().values.last, iv: iv16);
+
+        double temp_lat = double.parse(decLat);
+        double temp_long = double.parse(decLon);
+
         _mapMarkerExample.showAnchoredMapMarkers(temp_lat, temp_long);
       }
     }
@@ -324,8 +343,16 @@ class _TrackingScreenState extends State<TrackingScreen> {
     DocumentReference documentReference =
         collectionReference.doc("MasterCoordinates");
     final masterlocation = await documentReference.get();
-    double lat = masterlocation.data().values.first;
-    double long = masterlocation.data().values.last;
+    // var decLat = encrypter.decrypt(masterlocation.data().values.first, iv: iv);
+    // var decLon = encrypter.decrypt(masterlocation.data().values.last, iv: iv);
+    var decLat =
+        aes.gcm.decrypt(enc: masterlocation.data().values.first, iv: iv16);
+    var decLon =
+        aes.gcm.decrypt(enc: masterlocation.data().values.last, iv: iv16);
+    double lat = double.parse(decLat);
+    double long = double.parse(decLon);
+    // double lat = masterlocation.data().values.first;
+    // double long = masterlocation.data().values.last;
     routingExample.addRoute(lat, long);
   }
 
@@ -347,8 +374,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
     DocumentReference documentReference =
         collectionReference.doc("MasterCoordinates");
     final masterlocation = await documentReference.get();
-    double lat = masterlocation.data().values.first;
-    double long = masterlocation.data().values.last;
+    var decLat =
+        aes.gcm.decrypt(enc: masterlocation.data().values.first, iv: iv16);
+    var decLon =
+        aes.gcm.decrypt(enc: masterlocation.data().values.last, iv: iv16);
+
+    double lat = double.parse(decLat);
+    double long = double.parse(decLon);
+    // double lat = masterlocation.data().values.first;
+    // double long = masterlocation.data().values.last;
     routingExample.getPlaces(items, lat, long);
   }
 
@@ -513,14 +547,23 @@ class MyDrawer extends State<DrawerMaker> {
   bool loading = true;
   _TrackingScreenState tss;
   RoutingExample re = _TrackingScreenState.routingExample;
+  static var keyGen = CryptKey();
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
 
   void onTapMaster() {
     // print(TrackingScreen.current_lat);
     // print(long);
-    Map<String, dynamic> demodata = {
-      "Latitude": TrackingScreen.current_lat,
-      "Longitude": TrackingScreen.current_long
-    };
+    var encLat =
+        aes.gcm.encrypt(inp: TrackingScreen.current_lat.toString(), iv: iv16);
+    var encLon =
+        aes.gcm.encrypt(inp: TrackingScreen.current_long.toString(), iv: iv16);
+    // var encLat =
+    //     encrypter.encrypt(TrackingScreen.current_lat.toString(), iv: iv);
+    // var encLon =
+    //     encrypter.encrypt(TrackingScreen.current_long.toString(), iv: iv);
+    Map<String, dynamic> demodata = {"Latitude": encLat, "Longitude": encLon};
     CollectionReference collectionReference =
         FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
     DocumentReference documentReference =
