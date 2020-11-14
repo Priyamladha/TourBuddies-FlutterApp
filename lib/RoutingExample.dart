@@ -42,6 +42,8 @@ class RoutingExample {
   List<MapPolygon> _mapPolygons = [];
   List<MapPolyline> _mapPolyLines = [];
   RoutingEngine _routingEngine;
+  var isroute=false;
+  GeoCoordinates placeCoordinate;
   var current_lat;
   var current_long;
   int counter = 0;
@@ -80,6 +82,9 @@ class RoutingExample {
   Future<void> getRoute(GeoCoordinates geoc) async {
     // print(current_lat);
     // print(current_long);
+    placeCoordinate = geoc;
+    isroute = true ;
+    clearRoute();
     var startGeoCoordinates = GeoCoordinates(current_lat, current_long);
     var destinationGeoCoordinates = geoc;
     var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
@@ -102,6 +107,36 @@ class RoutingExample {
         _showDialog('Error', 'Error while calculating a route: $error');
       }
     });
+  }
+
+  Future<void> updateRoute() async {
+    // print(current_lat);
+    // print(current_long);
+    GeoCoordinates geoc = placeCoordinate;
+
+    var startGeoCoordinates = GeoCoordinates(current_lat, current_long);
+    var destinationGeoCoordinates = geoc;
+    var startWaypoint = Waypoint.withDefaults(startGeoCoordinates);
+    var destinationWaypoint = Waypoint.withDefaults(destinationGeoCoordinates);
+    //
+    List<Waypoint> waypoints = [startWaypoint, destinationWaypoint];
+    // print("inside getroute");
+    await _routingEngine
+        .calculatePedestrianRoute(waypoints, PedestrianOptions.withDefaults(),
+            (RoutingError routingError, List<here.Route> routeList) async {
+          if (routingError == null) {
+            here.Route route = routeList.first;
+            // _showRouteDetails(route);
+            clearRoute();
+            _showRouteOnMap(route);
+            // print("route");
+            // return;
+          } else {
+            // print("no route");
+            var error = routingError.toString();
+            _showDialog('Error', 'Error while calculating a route: $error');
+          }
+        });
   }
 
   Future<void> addRoute(double lat, double long) async {

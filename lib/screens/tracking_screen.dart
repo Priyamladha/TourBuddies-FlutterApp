@@ -159,6 +159,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     // print(TrackingScreen.current_lat);
                     routingExample.current_lat = lat;
                     routingExample.current_long = long;
+
                     _anchoredMapMarkersButtonClicked(lat, long);
                     awaitStatus(lat, long);
 //                    sleep(new Duration(seconds: 5));
@@ -218,6 +219,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _anchoredMapMarkersButtonClicked(double lat, double long) async {
+    if(routingExample.isroute){
+      routingExample.updateRoute();
+    }
     // print("stream ok");
     var encLat = aes.gcm.encrypt(inp: lat.toString(), iv: iv16);
     var encLon = aes.gcm.encrypt(inp: long.toString(), iv: iv16);
@@ -387,6 +391,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _clearRoute() {
+    routingExample.isroute = false ;
     routingExample.clearRoute();
   }
 
