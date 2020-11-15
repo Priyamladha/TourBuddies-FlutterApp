@@ -50,6 +50,9 @@ class TrackingScreen extends StatefulWidget {
   static var admin_flag;
   static double current_lat;
   static double current_long;
+  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
+  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
+  static var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
   @override
   _TrackingScreenState createState() => _TrackingScreenState();
 }
@@ -71,9 +74,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
   static List<String> isChecked = [];
   bool status = true;
   int flag = 0;
-  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
-  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
-  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
 
   void initState() {
     super.initState();
@@ -219,12 +219,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _anchoredMapMarkersButtonClicked(double lat, double long) async {
-    if(routingExample.isroute){
+    if (routingExample.isroute) {
       routingExample.updateRoute();
     }
     // print("stream ok");
-    var encLat = aes.gcm.encrypt(inp: lat.toString(), iv: iv16);
-    var encLon = aes.gcm.encrypt(inp: long.toString(), iv: iv16);
+    var encLat = TrackingScreen.aes.gcm
+        .encrypt(inp: lat.toString(), iv: TrackingScreen.iv16);
+    var encLon = TrackingScreen.aes.gcm
+        .encrypt(inp: long.toString(), iv: TrackingScreen.iv16);
     //print(encLat);
     // print(key32);
     // print(iv16);
@@ -255,10 +257,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
       if (location.id != "MasterCoordinates") {
         // var decLat = encrypter.decrypt(location.data().values.first, iv: iv);
         // var decLon = encrypter.decrypt(location.data().values.last, iv: iv);
-        var decLat =
-            aes.gcm.decrypt(enc: location.data().values.first, iv: iv16);
-        var decLon =
-            aes.gcm.decrypt(enc: location.data().values.last, iv: iv16);
+        var decLat = TrackingScreen.aes.gcm.decrypt(
+            enc: location.data().values.first, iv: TrackingScreen.iv16);
+        var decLon = TrackingScreen.aes.gcm
+            .decrypt(enc: location.data().values.last, iv: TrackingScreen.iv16);
 
         double temp_lat = double.parse(decLat);
         double temp_long = double.parse(decLon);
@@ -349,10 +351,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     final masterlocation = await documentReference.get();
     // var decLat = encrypter.decrypt(masterlocation.data().values.first, iv: iv);
     // var decLon = encrypter.decrypt(masterlocation.data().values.last, iv: iv);
-    var decLat =
-        aes.gcm.decrypt(enc: masterlocation.data().values.first, iv: iv16);
-    var decLon =
-        aes.gcm.decrypt(enc: masterlocation.data().values.last, iv: iv16);
+    var decLat = TrackingScreen.aes.gcm.decrypt(
+        enc: masterlocation.data().values.first, iv: TrackingScreen.iv16);
+    var decLon = TrackingScreen.aes.gcm.decrypt(
+        enc: masterlocation.data().values.last, iv: TrackingScreen.iv16);
     double lat = double.parse(decLat);
     double long = double.parse(decLon);
     // double lat = masterlocation.data().values.first;
@@ -378,10 +380,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     DocumentReference documentReference =
         collectionReference.doc("MasterCoordinates");
     final masterlocation = await documentReference.get();
-    var decLat =
-        aes.gcm.decrypt(enc: masterlocation.data().values.first, iv: iv16);
-    var decLon =
-        aes.gcm.decrypt(enc: masterlocation.data().values.last, iv: iv16);
+    var decLat = TrackingScreen.aes.gcm.decrypt(
+        enc: masterlocation.data().values.first, iv: TrackingScreen.iv16);
+    var decLon = TrackingScreen.aes.gcm.decrypt(
+        enc: masterlocation.data().values.last, iv: TrackingScreen.iv16);
 
     double lat = double.parse(decLat);
     double long = double.parse(decLon);
@@ -391,7 +393,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _clearRoute() {
-    routingExample.isroute = false ;
+    routingExample.isroute = false;
     routingExample.clearRoute();
   }
 
@@ -552,18 +554,14 @@ class MyDrawer extends State<DrawerMaker> {
   bool loading = true;
   _TrackingScreenState tss;
   RoutingExample re = _TrackingScreenState.routingExample;
-  static var keyGen = CryptKey();
-  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
-  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
-  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
 
   void onTapMaster() {
     // print(TrackingScreen.current_lat);
     // print(long);
-    var encLat =
-        aes.gcm.encrypt(inp: TrackingScreen.current_lat.toString(), iv: iv16);
-    var encLon =
-        aes.gcm.encrypt(inp: TrackingScreen.current_long.toString(), iv: iv16);
+    var encLat = TrackingScreen.aes.gcm.encrypt(
+        inp: TrackingScreen.current_lat.toString(), iv: TrackingScreen.iv16);
+    var encLon = TrackingScreen.aes.gcm.encrypt(
+        inp: TrackingScreen.current_long.toString(), iv: TrackingScreen.iv16);
     // var encLat =
     //     encrypter.encrypt(TrackingScreen.current_lat.toString(), iv: iv);
     // var encLon =

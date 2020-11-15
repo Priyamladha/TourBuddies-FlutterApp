@@ -4,6 +4,7 @@ import 'package:mapmarker/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:steel_crypt/steel_crypt.dart';
+import 'tracking_screen.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User loggedInUser;
@@ -16,10 +17,6 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
-  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
-  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
-
   final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
 
@@ -82,7 +79,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   FlatButton(
                     onPressed: () {
                       messageTextController.clear();
-                      var encMsg = aes.gcm.encrypt(inp: messageText, iv: iv16);
+                      var encMsg = TrackingScreen.aes.gcm
+                          .encrypt(inp: messageText, iv: TrackingScreen.iv16);
                       _firestore.collection(ChatScreen.collection_name).add({
                         'text': encMsg,
                         'sender': loggedInUser.email,
@@ -105,9 +103,6 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class MessagesStream extends StatelessWidget {
-  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
-  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
-  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -128,8 +123,8 @@ class MessagesStream extends StatelessWidget {
         List<MessageBubble> messageBubbles = [];
         for (var message in messages) {
           //final messageText = message.data()['text'];
-          final messageText =
-              aes.gcm.decrypt(enc: message.data()['text'], iv: iv16);
+          final messageText = TrackingScreen.aes.gcm
+              .decrypt(enc: message.data()['text'], iv: TrackingScreen.iv16);
           final messageSender = message.data()['sender'];
           print(message.data());
           final currentUser = loggedInUser.email;
@@ -156,9 +151,6 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
-  static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
-  var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
   MessageBubble({this.sender, this.text, this.isMe});
 
   final String sender;
