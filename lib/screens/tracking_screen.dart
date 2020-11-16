@@ -50,6 +50,7 @@ class TrackingScreen extends StatefulWidget {
   static var admin_flag;
   static double current_lat;
   static double current_long;
+  static String userName = "";
   static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
   static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
   static var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
@@ -240,13 +241,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
         .encrypt(inp: lat.toString(), iv: TrackingScreen.iv16);
     var encLon = TrackingScreen.aes.gcm
         .encrypt(inp: long.toString(), iv: TrackingScreen.iv16);
-    //print(encLat);
-    // print(key32);
-    // print(iv16);
-    // final encrypter = enc.Encrypter(enc.AES(key));
-    // var encLat = encrypter.encrypt(lat.toString(), iv: iv);
-    // var encLon = encrypter.encrypt(lat.toString(), iv: iv);
-    Map<String, dynamic> demodata = {"Latitude": encLat, "Longitude": encLon};
+
+    Map<String, dynamic> demodata = {
+      "Latitude": encLat,
+      "Longitude": encLon,
+      "UserName": TrackingScreen.userName
+    };
     bool docExists = await checkIfDocExists(useruid);
 //    print("Document exists in Firestore? " + docExists.toString());
     CollectionReference collectionReference =
@@ -258,27 +258,32 @@ class _TrackingScreenState extends State<TrackingScreen> {
     } else {
       collectionReference.doc(useruid).set(demodata);
       if (TrackingScreen.admin_flag) {
-        collectionReference.doc("MasterCoordinates").set(demodata);
+        Map<String, dynamic> masterdata = {
+          "Latitude": encLat,
+          "Longitude": encLon
+        };
+        collectionReference.doc("MasterCoordinates").set(masterdata);
       }
     }
 
     final locations = await collectionReference.get();
-
     _mapMarkerExample.clearMap();
+    _mapMarkerExample.clearPins();
     for (var location in locations.docs) {
       // print(location.id);
       if (location.id != "MasterCoordinates") {
         // var decLat = encrypter.decrypt(location.data().values.first, iv: iv);
         // var decLon = encrypter.decrypt(location.data().values.last, iv: iv);
-        var decLat = TrackingScreen.aes.gcm.decrypt(
-            enc: location.data().values.first, iv: TrackingScreen.iv16);
-        var decLon = TrackingScreen.aes.gcm
-            .decrypt(enc: location.data().values.last, iv: TrackingScreen.iv16);
+        var decLat = TrackingScreen.aes.gcm
+            .decrypt(enc: location.data()['Latitude'], iv: TrackingScreen.iv16);
+        var decLon = TrackingScreen.aes.gcm.decrypt(
+            enc: location.data()['Longitude'], iv: TrackingScreen.iv16);
 
         double temp_lat = double.parse(decLat);
         double temp_long = double.parse(decLon);
 
-        _mapMarkerExample.showAnchoredMapMarkers(temp_lat, temp_long);
+        _mapMarkerExample.showAnchoredMapMarkers(
+            temp_lat, temp_long, location.data()['UserName']);
       }
     }
   }
@@ -676,6 +681,40 @@ class MyDrawer extends State<DrawerMaker> {
                       style: TextStyle(color: Colors.black),
                     ),
                   ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                initialValue: TrackingScreen.userName,
+                keyboardType: TextInputType.text,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black),
+                onChanged: (value) {
+                  TrackingScreen.userName = value;
+                  // name_entered = value;
+                  // print(value);
+                },
+                decoration: InputDecoration(
+                  labelText: 'Enter Name',
+                  hintText: 'Enter Name',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.lightBlueAccent, width: 1.0),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.lightBlueAccent, width: 2.0),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
                 ),
               ),
             ),

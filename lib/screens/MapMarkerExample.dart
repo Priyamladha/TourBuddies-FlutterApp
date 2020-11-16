@@ -47,7 +47,7 @@ class MapMarkerExample {
     _setTapGestureHandler();
   }
 
-  void showAnchoredMapMarkers(double lat, double long) {
+  void showAnchoredMapMarkers(double lat, double long, String userName) {
     GeoCoordinates geoCoordinates =
         _setcurrentGeoCoordinatesInViewport(lat, long);
 
@@ -58,7 +58,7 @@ class MapMarkerExample {
 //    _addCircleMapMarker(geoCoordinates, 0);
 
 //     Anchored, pointing to location.
-    _addPOIMapMarker(geoCoordinates, 1);
+    _addPOIMapMarker(geoCoordinates, 1, userName);
   }
 
   void centeruserlocation(double lat, double long) async {
@@ -88,13 +88,26 @@ class MapMarkerExample {
     _mapMarkerList.clear();
   }
 
+  void clearPins() {
+    var list = _hereMapController.widgetPins.toList();
+    for (var pin in list) {
+      pin.unpin();
+    }
+    _hereMapController.widgetPins.clear();
+  }
+
   Future<void> _addPOIMapMarker(
-      GeoCoordinates geoCoordinates, int drawOrder) async {
+      GeoCoordinates geoCoordinates, int drawOrder, String userName) async {
     // Reuse existing MapImage for new map markers.
     if (_poiMapImage == null) {
       Uint8List imagePixelData = await _loadFileAsUint8List('poi.png');
       _poiMapImage =
           MapImage.withPixelDataAndImageFormat(imagePixelData, ImageFormat.png);
+    }
+    if (_circleMapImage == null) {
+      Uint8List imagePixelData2 = await _loadFileAsUint8List('circle.png');
+      _circleMapImage = MapImage.withPixelDataAndImageFormat(
+          imagePixelData2, ImageFormat.png);
     }
 
     // By default, the anchor point is set to 0.5, 0.5 (= centered).
@@ -111,6 +124,20 @@ class MapMarkerExample {
 
     _hereMapController.mapScene.addMapMarker(mapMarker);
     _mapMarkerList.add(mapMarker);
+    Anchor2D nameanchor2D = Anchor2D.withHorizontalAndVertical(0.5, 3);
+    _hereMapController.pinWidget(
+        Text(
+          userName,
+          style: TextStyle(color: Colors.white),
+        ),
+        geoCoordinates,
+        anchor: nameanchor2D);
+    // _hereMapController.unpinWidget(widget)
+    MapMarker mapMarker2 = MapMarker(geoCoordinates, _circleMapImage);
+    mapMarker2.drawOrder = drawOrder;
+
+    _hereMapController.mapScene.addMapMarker(mapMarker2);
+    _mapMarkerList.add(mapMarker2);
   }
 
   Future<Uint8List> _loadFileAsUint8List(String fileName) async {
