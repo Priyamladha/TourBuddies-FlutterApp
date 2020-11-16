@@ -30,6 +30,20 @@ class _LobbyScreenState extends State<LobbyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        // leading: null,
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+//                moodsStream();
+                _auth.signOut();
+                // Navigator.pop(context);
+                // Navigator.push(context, route)
+                Navigator.popUntil(context, (route) => route.isFirst);
+              }),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,

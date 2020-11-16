@@ -73,6 +73,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   List<String> result = new List<String>();
   static List<String> isChecked = [];
   bool status = true;
+  var notleave = true;
   int flag = 0;
 
   void initState() {
@@ -108,19 +109,30 @@ class _TrackingScreenState extends State<TrackingScreen> {
         appBar: AppBar(
           leading: null,
           actions: <Widget>[
-            IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-//                moodsStream();
-                  _auth.signOut();
-                  // Navigator.pop(context);
-                  // Navigator.push(context, route)
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                }),
+//             IconButton(
+//                 icon: Icon(Icons.logout),
+//                 onPressed: () {
+// //                moodsStream();
+//                   _auth.signOut();
+//                   // Navigator.pop(context);
+//                   // Navigator.push(context, route)
+//                   Navigator.popUntil(context, (route) => route.isFirst);
+//                 }),
+            PopupMenuButton<String>(
+              onSelected: choiceAction,
+              itemBuilder: (BuildContext context) {
+                return Constants.choices.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+            ),
           ],
-          title: Text(
-            'Tracking',
-          ),
+          // title: Text(
+          //   'Tracking',
+          // ),
         ),
         body: Stack(
           children: <Widget>[
@@ -159,8 +171,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     // print(TrackingScreen.current_lat);
                     routingExample.current_lat = lat;
                     routingExample.current_long = long;
-
-                    _anchoredMapMarkersButtonClicked(lat, long);
+                    if (notleave) {
+                      _anchoredMapMarkersButtonClicked(lat, long);
+                    }
                     awaitStatus(lat, long);
 //                    sleep(new Duration(seconds: 5));
                   }
@@ -447,6 +460,34 @@ class _TrackingScreenState extends State<TrackingScreen> {
       print("error");
     }
   }
+
+  void choiceAction(String choice) async {
+    if (choice == Constants.Leave) {
+      // print('Leave');
+      notleave = false;
+      await new Future.delayed(const Duration(milliseconds: 50));
+      CollectionReference collectionReference =
+          FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+      collectionReference.doc(useruid).delete();
+      Navigator.pop(context);
+    } else if (choice == Constants.SignOut) {
+      // print('SignOut');
+      notleave = false;
+      await new Future.delayed(const Duration(milliseconds: 50));
+      CollectionReference collectionReference =
+          FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
+      collectionReference.doc(useruid).delete();
+      _auth.signOut();
+      Navigator.popUntil(context, (route) => route.isFirst);
+    }
+  }
+}
+
+class Constants {
+  static const String Leave = "Leave";
+  static const String SignOut = 'Sign out';
+
+  static const List<String> choices = <String>[Leave, SignOut];
 }
 
 class HomeView extends StatelessWidget {
