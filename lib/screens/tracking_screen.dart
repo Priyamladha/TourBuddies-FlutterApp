@@ -50,7 +50,7 @@ class TrackingScreen extends StatefulWidget {
   static var admin_flag;
   static double current_lat;
   static double current_long;
-  static String userName = "";
+  static String userName = "XYZ";
   static var key32 = "iiDW9Wjrcybj22snqaWYpHrHtfAWUI6JAlujGP7xgHQ=";
   static var iv16 = "5nnxuwf0KM91rlPxw2Ok2g==";
   static var aes = AesCrypt(key: key32, padding: PaddingAES.pkcs7);
@@ -241,14 +241,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
         .encrypt(inp: lat.toString(), iv: TrackingScreen.iv16);
     var encLon = TrackingScreen.aes.gcm
         .encrypt(inp: long.toString(), iv: TrackingScreen.iv16);
-
+    var encuserName = TrackingScreen.aes.gcm
+        .encrypt(inp: TrackingScreen.userName, iv: TrackingScreen.iv16);
+    // print(encuserName);
     Map<String, dynamic> demodata = {
       "Latitude": encLat,
       "Longitude": encLon,
-      "UserName": TrackingScreen.userName
+      "UserName": encuserName
     };
     bool docExists = await checkIfDocExists(useruid);
-//    print("Document exists in Firestore? " + docExists.toString());
     CollectionReference collectionReference =
         FirebaseFirestore.instance.collection(TrackingScreen.collection_name);
 
@@ -278,12 +279,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
             .decrypt(enc: location.data()['Latitude'], iv: TrackingScreen.iv16);
         var decLon = TrackingScreen.aes.gcm.decrypt(
             enc: location.data()['Longitude'], iv: TrackingScreen.iv16);
+        var decuserName = TrackingScreen.aes.gcm
+            .decrypt(enc: location.data()['UserName'], iv: TrackingScreen.iv16);
 
         double temp_lat = double.parse(decLat);
         double temp_long = double.parse(decLon);
 
         _mapMarkerExample.showAnchoredMapMarkers(
-            temp_lat, temp_long, location.data()['UserName']);
+            temp_lat, temp_long, decuserName);
       }
     }
   }
